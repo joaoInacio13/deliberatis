@@ -11,14 +11,16 @@ import antLocale_esES from "antd/lib/locale/es_ES";
 import antLocale_ptBR from "antd/lib/locale/pt_BR";
 import antLocale_ptPT from "antd/lib/locale/pt_PT";
 
+// Configura defensivamente o prefixo de acesso à API de serviços do Netuno
 _service.config({
   prefix: typeof netuno !== 'undefined' ? netuno.config.urlServices : '/services/'
 });
 
+// Deteta se o elemento de base do Dashboard de Administração está presente no DOM
 const dashboardDiv = document.getElementById("app-dashboard");
-
 const dashboardContainer = dashboardDiv ? createRoot(dashboardDiv) : false;
 
+// Inicializa a interface de Dashboard do Backoffice administrativo do Netuno
 if (dashboardContainer) {
   dashboardContainer.render(
     <ConfigProvider
@@ -45,9 +47,11 @@ if (dashboardContainer) {
   );
 }
 
+// Deteta se o elemento de base da Autenticação está presente no DOM (ex: na página auth.html pública)
 const authDiv = document.getElementById("app-auth");
 const authContainer = authDiv ? createRoot(authDiv) : false;
 
+// Inicializa a interface do Portal de Autenticação pública
 if (authContainer) {
   authContainer.render(
     <ConfigProvider
@@ -61,34 +65,36 @@ if (authContainer) {
       }}
       locale={antLocale_ptPT}
     >
+      {/* Ao obter sucesso no Login, redireciona o utilizador para a página pública home.html */}
       <AuthContainer onLoginSuccess={() => {
-        window.location.href = "/Index.netuno";
+        window.location.href = "/public/home.html";
       }} />
     </ConfigProvider>
   );
 }
 
+// Configurações e callbacks de eventos do Backoffice Netuno (apenas ativos quando 'netuno' está definido)
 if (typeof netuno !== 'undefined') {
   netuno.addNavigationLoad(() => {
     $('[netuno-navigation]').find('a').on('netuno:click', (e)=> {
       const link = $(e.target);
       if (dashboardContainer && link.is('[netuno-navigation-dashboard]')) {
-        // Menu > Dashboard > Clicked!
+        // Callback para cliques no menu lateral do Dashboard
       }
     });
   });
 
   netuno.addContentLoad((container) => {
-    // When any content is loaded dinamically this is executed...
+    // Quando qualquer conteúdo dinâmico for carregado pelo Netuno (ex: formulários de tabelas)
     if (container.is('[netuno-form-search="YOUR_FORM_NAME"]')) {
-      // When search page is loaded...
+      // Quando a pesquisa do formulário é aberta
     } else if (container.is('[netuno-form-edit="YOUR_FORM_NAME"]')) {
-      // When form edit is loaded...
+      // Quando a edição de registo é aberta
     }
   });
 
   netuno.addPageLoad(() => {
-    // When page is loaded...
+    // Lógicas disparadas ao carregar completamente a página do Backoffice
     let modal = $('#app-dashboard-modal-form');
     modal.on('hidden.bs.modal', ()=> {
       modal.find('[netuno-form-edit]').empty();

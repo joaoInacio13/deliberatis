@@ -2,8 +2,12 @@ import React, { useState } from 'react';
 import Login from './login';
 import Register from './register';
 
+/**
+ * Contentor principal de Autenticação (regula a alternância entre ecrãs de Login e Registo)
+ */
 const AuthContainer = ({ onLoginSuccess }) => {
-  const [screen, setScreen] = useState('login'); // Pode ser 'login' ou 'register'
+  // Estado que determina qual o ecrã ativo: 'login' ou 'register'
+  const [screen, setScreen] = useState('login');
 
   return (
     <div style={{
@@ -11,8 +15,9 @@ const AuthContainer = ({ onLoginSuccess }) => {
       justifyContent: 'center',
       alignItems: 'center',
       minHeight: '100vh',
-      backgroundColor: '#141414' // Fundo escuro para condizer com o teu darkAlgorithm
+      backgroundColor: '#141414' // Fundo escuro a condizer com o tema escuro do Ant Design
     }}>
+      {/* Condiciona o render com base no estado 'screen' */}
       {screen === 'login' ? (
         <Login onNavigate={setScreen} onLoginFake={onLoginSuccess} />
       ) : (

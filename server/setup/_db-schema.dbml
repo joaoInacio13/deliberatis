@@ -1,0 +1,11 @@
+Table utilizador {
+  id int [pk, increment]
+  data_de_nascimento date [not null, note: 'Data de Nascimento']
+  email varchar(250) [not null, unique, note: 'Email']
+  password text [not null, note: 'password']
+  primeiro_nome varchar(250) [not null, note: 'Primeiro Nome']
+  tipo_de_utilizador varchar(250) [not null, note: 'Tipo de Utilizador']
+  ultimo_nome varchar(250) [not null, note: 'Ultimo Nome']
+  Note: 'Utilizador'
+}
+

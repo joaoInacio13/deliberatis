@@ -4,6 +4,9 @@ import { UserOutlined, LockOutlined } from '@ant-design/icons';
 
 const { Title, Text } = Typography;
 
+/**
+ * Componente do formulário de Login de utilizadores
+ */
 const Login = ({ onNavigate, onLoginFake }) => {
   return (
     <Card style={{ width: 400, borderRadius: 8, boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}>
@@ -12,7 +15,9 @@ const Login = ({ onNavigate, onLoginFake }) => {
         <Text type="secondary">Inicia sessão na tua conta</Text>
       </div>
 
+      {/* Ao submeter com sucesso, chama a função de autenticação simulada (onLoginFake) */}
       <Form name="login_form" layout="vertical" onFinish={onLoginFake}>
+        {/* Campo do Nome de Utilizador ou Email */}
         <Form.Item
           name="username"
           rules={[{ required: true, message: 'Por favor, insere o teu utilizador!' }]}
@@ -20,6 +25,7 @@ const Login = ({ onNavigate, onLoginFake }) => {
           <Input prefix={<UserOutlined />} placeholder="Utilizador ou Email" size="large" />
         </Form.Item>
 
+        {/* Campo da Palavra-passe */}
         <Form.Item
           name="password"
           rules={[{ required: true, message: 'Por favor, insere a tua password!' }]}
@@ -34,6 +40,7 @@ const Login = ({ onNavigate, onLoginFake }) => {
         </Form.Item>
       </Form>
 
+      {/* Ligação de navegação rápida para ir para o ecrã de registo */}
       <div style={{ textAlign: 'center', marginTop: 16 }}>
         <Text>Não tens conta? </Text>
         <a onClick={() => onNavigate('register')} style={{ color: '#5b5ce1', fontWeight: 'bold' }}>
