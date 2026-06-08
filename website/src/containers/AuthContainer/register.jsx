@@ -14,9 +14,9 @@ const Register = ({ onNavigate }) => {
   // Estado para controlar o loading do botão de submissão
   const [loading, setLoading] = useState(false);
 
-  // Função para desativar a seleção de datas futuras (amanhã em diante) no calendário
+  // Desativa a seleção de datas que não correspondam a pelo menos 16 anos de idade
   const disabledDate = (current) => {
-    return current && current > dayjs().endOf('day');
+    return current && current > dayjs().subtract(16, 'year').endOf('day');
   };
 
   // Processa a submissão do formulário
@@ -76,7 +76,14 @@ const Register = ({ onNavigate }) => {
         <Form.Item
           name="primeiro_nome"
           label="Primeiro Nome"
-          rules={[{ required: true, message: 'Insere o teu primeiro nome!' }]}
+          rules={[
+            { required: true, message: 'Insere o teu primeiro nome!' },
+            { min: 2, message: 'O nome deve ter pelo menos 2 caracteres!' },
+            {
+              pattern: /^[A-Za-zÀ-ÖØ-öø-ÿ\s'-]+$/,
+              message: 'O nome deve conter apenas letras!'
+            }
+          ]}
         >
           <Input prefix={<UserOutlined />} placeholder="Ex: João" size="large" />
         </Form.Item>
@@ -85,7 +92,14 @@ const Register = ({ onNavigate }) => {
         <Form.Item
           name="ultimo_nome"
           label="Último Nome"
-          rules={[{ required: true, message: 'Insere o teu último nome!' }]}
+          rules={[
+            { required: true, message: 'Insere o teu último nome!' },
+            { min: 2, message: 'O nome deve ter pelo menos 2 caracteres!' },
+            {
+              pattern: /^[A-Za-zÀ-ÖØ-öø-ÿ\s'-]+$/,
+              message: 'O nome deve conter apenas letras!'
+            }
+          ]}
         >
           <Input prefix={<UserOutlined />} placeholder="Ex: Silva" size="large" />
         </Form.Item>
@@ -127,6 +141,7 @@ const Register = ({ onNavigate }) => {
             placeholder="Selecionar data" 
             format="YYYY-MM-DD" 
             disabledDate={disabledDate} 
+            defaultPickerValue={dayjs().subtract(16, 'year')}
           />
         </Form.Item>
 

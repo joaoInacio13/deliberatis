@@ -2,7 +2,6 @@ import React from "react";
 import { createRoot } from "react-dom/client";
 import _service from '@netuno/service-client';
 import DashboardContainer from "./containers/DashboardContainer";
-import AuthContainer from "./containers/AuthContainer";
 
 import { ConfigProvider, theme } from "antd";
 import antLocale_enGB from "antd/lib/locale/en_GB";
@@ -47,32 +46,6 @@ if (dashboardContainer) {
   );
 }
 
-// Deteta se o elemento de base da Autenticação está presente no DOM (ex: na página auth.html pública)
-const authDiv = document.getElementById("app-auth");
-const authContainer = authDiv ? createRoot(authDiv) : false;
-
-// Inicializa a interface do Portal de Autenticação pública
-if (authContainer) {
-  authContainer.render(
-    <ConfigProvider
-      theme={{
-        token: {
-          colorPrimary: '#5b5ce1',
-          colorLink: '#5b5ce1',
-          borderRadius: 5,
-        },
-        algorithm: theme.darkAlgorithm
-      }}
-      locale={antLocale_ptPT}
-    >
-      {/* Ao obter sucesso no Login, redireciona o utilizador para a página pública home.html */}
-      <AuthContainer onLoginSuccess={() => {
-        window.location.href = "/public/home.html";
-      }} />
-    </ConfigProvider>
-  );
-}
-
 // Configurações e callbacks de eventos do Backoffice Netuno (apenas ativos quando 'netuno' está definido)
 if (typeof netuno !== 'undefined') {
   netuno.addNavigationLoad(() => {
@@ -108,3 +81,4 @@ if (typeof netuno !== 'undefined') {
     });
   });
 }
+

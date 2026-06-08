@@ -20,6 +20,16 @@ if (!primeiroNome || !ultimoNome || !email || !password || !dataNascimento) {
   _out.close();
 }
 
+// Validação de formato de nome: apenas letras (incluindo acentos e apóstrofos), espaços, e mínimo de 2 caracteres
+const regexNome = /^[A-Za-zÀ-ÖØ-öø-ÿ\s'-]{2,}$/;
+if (!regexNome.test(primeiroNome) || !regexNome.test(ultimoNome)) {
+  _out.json(_val.map()
+    .set("result", false)
+    .set("error", "Os nomes devem ter pelo menos 2 caracteres e conter apenas letras.")
+  );
+  _out.close();
+}
+
 // Validação de força da password: mínimo 6 caracteres, pelo menos uma maiúscula e um número
 if (password.length < 6 || !/[A-Z]/.test(password) || !/\d/.test(password)) {
   _out.json(_val.map()
@@ -29,12 +39,14 @@ if (password.length < 6 || !/[A-Z]/.test(password) || !/\d/.test(password)) {
   _out.close();
 }
 
-// Validação de segurança: a data de nascimento não pode ser no futuro em relação ao dia de hoje
-const dataAtual = new java.text.SimpleDateFormat("yyyy-MM-dd").format(new java.util.Date());
-if (dataNascimento > dataAtual) {
+// Validação de segurança: a idade deve ser de pelo menos 16 anos
+const cal = java.util.Calendar.getInstance();
+cal.add(java.util.Calendar.YEAR, -16);
+const dataMinima = new java.text.SimpleDateFormat("yyyy-MM-dd").format(cal.getTime());
+if (dataNascimento > dataMinima) {
   _out.json(_val.map()
     .set("result", false)
-    .set("error", "A data de nascimento não pode ser no futuro.")
+    .set("error", "Deves ter pelo menos 16 anos para te registares.")
   );
   _out.close();
 }
