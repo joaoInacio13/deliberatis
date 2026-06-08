@@ -1,0 +1,21 @@
+2026-06-08 13:23:46.936433+01:00 jdbc[26]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "encomenda" not found; SQL statement:
+SELECT id, uid, lastchange_time, descricao, valor, estado FROM encomenda WHERE utilizador_id = ? AND active = true ORDER BY lastchange_time DESC [42102-240]
+2026-06-08 13:42:33.647398+01:00 jdbc[33]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Syntax error in SQL statement "select * from encomendas;\000d\000a\000d\000aselect [*]`from utilizador;\000d\000a"; SQL statement:
+select * from encomendas;
+
+select `from utilizador;
+ [42000-240]
+2026-06-08 13:49:55.812870+01:00 jdbc[41]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "encomendas" not found; SQL statement:
+select * from encomendas; [42102-240]
+2026-06-08 13:56:06.873479+01:00 jdbc[43]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table  not found; SQL statement:
+select * from `` where id = 9 [42102-240]
+2026-06-08 13:56:14.442443+01:00 jdbc[43]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table  not found; SQL statement:
+select * from `` where id = 9 [42102-240]
+2026-06-08 14:00:17.278586+01:00 jdbc[43]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table  not found; SQL statement:
+select * from `` where id = 9 [42102-240]

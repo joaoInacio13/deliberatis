@@ -15,7 +15,7 @@ const AuthContainer = ({ onLoginSuccess }) => {
       justifyContent: 'center',
       alignItems: 'center',
       minHeight: '100vh',
-      backgroundColor: '#141414' // Fundo escuro a condizer com o tema escuro do Ant Design
+      backgroundColor: '#f5f5f5' // Fundo claro a condizer com o tema claro
     }}>
       {/* Condiciona o render com base no estado 'screen' */}
       {screen === 'login' ? (

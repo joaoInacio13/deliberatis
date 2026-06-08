@@ -1,133 +1,14 @@
 <!DOCTYPE html>
 <html lang="pt">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Início - Deliberatis</title>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            background-color: #141414;
-            font-family: 'Outfit', sans-serif;
-            color: #ffffff;
-        }
-
-        .container {
-            text-align: center;
-            background: rgba(255, 255, 255, 0.03);
-            padding: 60px 40px;
-            border-radius: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-            max-width: 400px;
-            width: 90%;
-        }
-
-        .logo {
-            font-size: 24px;
-            font-weight: 800;
-            color: #5b5ce1;
-            letter-spacing: 2px;
-            margin-bottom: 24px;
-        }
-
-        h1 {
-            font-size: 36px;
-            font-weight: 600;
-            margin: 0 0 16px 0;
-            background: linear-gradient(135deg, #ffffff 0%, #a5a6f6 100%);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        p {
-            font-size: 16px;
-            color: #8c8c8c;
-            line-height: 1.6;
-            margin-bottom: 32px;
-        }
-
-        .btn {
-            display: inline-block;
-            padding: 12px 32px;
-            font-size: 16px;
-            font-weight: 600;
-            color: #ffffff;
-            background-color: #5b5ce1;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            text-decoration: none;
-            transition: all 0.3s ease;
-        }
-
-        .btn:hover {
-            background-color: #4a4bc7;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(91, 92, 225, 0.4);
-        }
-    </style>
+    <link rel="stylesheet" href="/public/styles/website.css?v=1">
 </head>
+<body style="margin: 0; padding: 0; background-color: #f5f5f5;">
+    <div id="app-home"></div>
 
-<body>
-    <div class="container" id="content-container" style="display: none;">
-        <div class="logo">DELIBERATIS</div>
-        <h1 id="welcome-heading">Bem-vindo!</h1>
-        <p>Login efetuado com sucesso no ecossistema Netuno + React.</p>
-        <a href="#" id="btn-logout" class="btn">Terminar Sessão</a>
-    </div>
-
-    <script>
-        (function() {
-            const token = localStorage.getItem('user_session_token');
-            if (!token) {
-                window.location.href = "/public/auth.html";
-                return;
-            }
-
-            // Faz o pedido para verificar se o token JWT é válido no servidor Netuno
-            fetch('/services/check-session', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                },
-                body: new URLSearchParams({ token: token })
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.result === true) {
-                    // Atualiza a mensagem de boas-vindas com o primeiro nome do utilizador
-                    document.getElementById('welcome-heading').textContent = `Bem-vindo, ${data.primeiro_nome}!`;
-                    // Se for válido, mostra o conteúdo da página
-                    document.getElementById('content-container').style.display = 'block';
-                } else {
-                    // Se for inválido, limpa e redireciona
-                    localStorage.removeItem('user_session_token');
-                    window.location.href = "/public/auth.html";
-                }
-            })
-            .catch(err => {
-                console.error("Session verification failed", err);
-                localStorage.removeItem('user_session_token');
-                window.location.href = "/public/auth.html";
-            });
-
-            // Lógica do botão de terminar sessão
-            document.getElementById('btn-logout').addEventListener('click', function(e) {
-                e.preventDefault();
-                localStorage.removeItem('user_session_token');
-                window.location.href = "/public/auth.html";
-            });
-        })();
-    </script>
+    <script type="module" src="/public/scripts/website.js?v=1"></script>
 </body>
-
 </html>
