@@ -35,9 +35,50 @@ try {
   const checkHash = _crypto.bcryptHash(password, storedHash);
 
   if (checkHash === storedHash) {
+    // Segredo para assinatura do JWT (deve ter 32+ caracteres)
+    const jwtSecret = "MinhaChaveSecretaDeliberatisSuperSegura123!";
+    
+    // Importação explícita das classes Java via GraalVM Java.type
+    const Base64 = Java.type('java.util.Base64');
+    const Mac = Java.type('javax.crypto.Mac');
+    const SecretKeySpec = Java.type('javax.crypto.spec.SecretKeySpec');
+    const DateClass = Java.type('java.util.Date');
+
+    // Função auxiliar robusta para converter String JS em Array de Bytes Java (byte[]) no GraalVM
+    const stringToBytes = (str) => {
+      const utf8 = unescape(encodeURIComponent(str));
+      const arr = [];
+      for (let i = 0; i < utf8.length; i++) {
+        arr.push(utf8.charCodeAt(i));
+      }
+      return Java.to(arr, "byte[]");
+    };
+
+    // Geração do Token JWT usando as classes nativas de Criptografia do Java
+    const header = Base64.getUrlEncoder().withoutPadding().encodeToString(
+      stringToBytes('{"alg":"HS256","typ":"JWT"}')
+    );
+    const exp = new DateClass().getTime() + (24 * 60 * 60 * 1000); // Expira em 24h
+    const payload = Base64.getUrlEncoder().withoutPadding().encodeToString(
+      stringToBytes(JSON.stringify({ email: email, exp: exp }))
+    );
+    
+    // Assinatura HMAC-SHA256
+    const sha256_HMAC = Mac.getInstance("HmacSHA256");
+    const secret_key = new SecretKeySpec(
+      stringToBytes(jwtSecret), 
+      "HmacSHA256"
+    );
+    sha256_HMAC.init(secret_key);
+    const hash = sha256_HMAC.doFinal(stringToBytes(header + "." + payload));
+    const signature = Base64.getUrlEncoder().withoutPadding().encodeToString(hash);
+    
+    const token = header + "." + payload + "." + signature;
+
     _out.json(_val.map()
       .set("result", true)
       .set("primeiro_nome", user.getString("primeiro_nome"))
+      .set("token", token)
     );
   } else {
     _out.json(_val.map()

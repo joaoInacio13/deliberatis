@@ -21,6 +21,7 @@ const Login = ({ onNavigate, onLoginFake }) => {
       },
       success: ({ json }) => {
         if (json.result === true) {
+          localStorage.setItem('user_session_token', json.token);
           notification.success({
             message: 'Sessão Iniciada!',
             description: `Bem-vindo de volta, ${json.primeiro_nome}!`

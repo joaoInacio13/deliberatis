@@ -78,12 +78,56 @@
 </head>
 
 <body>
-    <div class="container">
+    <div class="container" id="content-container" style="display: none;">
         <div class="logo">DELIBERATIS</div>
-        <h1>Bem-vindo!</h1>
+        <h1 id="welcome-heading">Bem-vindo!</h1>
         <p>Login efetuado com sucesso no ecossistema Netuno + React.</p>
-        <a href="/public/auth.html" class="btn">Terminar Sessão</a>
+        <a href="#" id="btn-logout" class="btn">Terminar Sessão</a>
     </div>
+
+    <script>
+        (function() {
+            const token = localStorage.getItem('user_session_token');
+            if (!token) {
+                window.location.href = "/public/auth.html";
+                return;
+            }
+
+            // Faz o pedido para verificar se o token JWT é válido no servidor Netuno
+            fetch('/services/check-session', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: new URLSearchParams({ token: token })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.result === true) {
+                    // Atualiza a mensagem de boas-vindas com o primeiro nome do utilizador
+                    document.getElementById('welcome-heading').textContent = `Bem-vindo, ${data.primeiro_nome}!`;
+                    // Se for válido, mostra o conteúdo da página
+                    document.getElementById('content-container').style.display = 'block';
+                } else {
+                    // Se for inválido, limpa e redireciona
+                    localStorage.removeItem('user_session_token');
+                    window.location.href = "/public/auth.html";
+                }
+            })
+            .catch(err => {
+                console.error("Session verification failed", err);
+                localStorage.removeItem('user_session_token');
+                window.location.href = "/public/auth.html";
+            });
+
+            // Lógica do botão de terminar sessão
+            document.getElementById('btn-logout').addEventListener('click', function(e) {
+                e.preventDefault();
+                localStorage.removeItem('user_session_token');
+                window.location.href = "/public/auth.html";
+            });
+        })();
+    </script>
 </body>
 
 </html>
