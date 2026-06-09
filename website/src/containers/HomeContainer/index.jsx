@@ -16,7 +16,7 @@ const HomeContainer = () => {
 
   useEffect(() => {
     const token = localStorage.getItem('user_session_token');
-    
+
     if (!token) {
       window.location.href = "/public/auth.html";
       return;
@@ -26,7 +26,9 @@ const HomeContainer = () => {
     _service({
       url: '/check-session',
       method: 'POST',
-      data: { token: token },
+      headers: {
+        'Authorization': 'Bearer ' + token
+      },
       success: ({ json }) => {
         if (json.result === true) {
           setUserName(json.primeiro_nome);
@@ -50,7 +52,9 @@ const HomeContainer = () => {
     _service({
       url: '/orders',
       method: 'GET',
-      data: { token: token },
+      headers: {
+        'Authorization': 'Bearer ' + token
+      },
       success: ({ json }) => {
         if (json.result === true) {
           setOrders(json.orders || []);
@@ -97,10 +101,10 @@ const HomeContainer = () => {
     _service({
       url: '/orders',
       method: 'POST',
-      data: {
-        ...values,
-        token: token
+      headers: {
+        'Authorization': 'Bearer ' + token
       },
+      data: values,
       start: () => {
         setSubmitting(true);
       },
@@ -162,9 +166,9 @@ const HomeContainer = () => {
       dataIndex: 'estado',
       key: 'estado',
       render: (estado) => (
-        <span style={{ 
-          fontWeight: 'bold', 
-          color: estado === 'Pendente' ? '#f0ad4e' : '#5cb85c' 
+        <span style={{
+          fontWeight: 'bold',
+          color: estado === 'Pendente' ? '#f0ad4e' : '#5cb85c'
         }}>
           {estado}
         </span>
@@ -182,11 +186,11 @@ const HomeContainer = () => {
 
   return (
     <Layout style={{ minHeight: '100vh', backgroundColor: '#f5f5f5' }}>
-      <Header style={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center', 
-        background: '#ffffff', 
+      <Header style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        background: '#ffffff',
         boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
         padding: '0 24px',
         position: 'sticky',
@@ -194,10 +198,10 @@ const HomeContainer = () => {
         zIndex: 1
       }}>
         {/* Logo no Canto Superior Esquerdo */}
-        <div style={{ 
-          fontSize: '20px', 
-          fontWeight: '800', 
-          color: '#5b5ce1', 
+        <div style={{
+          fontSize: '20px',
+          fontWeight: '800',
+          color: '#5b5ce1',
           letterSpacing: '1px',
           fontFamily: "'Outfit', sans-serif"
         }}>
@@ -206,21 +210,21 @@ const HomeContainer = () => {
 
         {/* Botão verde à direita "Criar Encomenda" + Logout */}
         <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-          <Button 
-            type="primary" 
-            icon={<PlusOutlined />} 
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
             onClick={handleOpenModal}
-            style={{ 
-              backgroundColor: '#2eb82e', 
+            style={{
+              backgroundColor: '#2eb82e',
               borderColor: '#2eb82e',
               fontWeight: '600'
             }}
           >
             Criar Encomenda
           </Button>
-          <Button 
-            type="text" 
-            icon={<LogoutOutlined />} 
+          <Button
+            type="text"
+            icon={<LogoutOutlined />}
             onClick={logout}
             danger
           >
@@ -238,21 +242,21 @@ const HomeContainer = () => {
         </div>
 
         {/* Listagem de Encomendas */}
-        <div style={{ 
-          background: '#ffffff', 
-          padding: '24px', 
-          borderRadius: '8px', 
-          boxShadow: '0 4px 12px rgba(0,0,0,0.04)' 
+        <div style={{
+          background: '#ffffff',
+          padding: '24px',
+          borderRadius: '8px',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.04)'
         }}>
           {orders.length > 0 ? (
-            <Table 
-              dataSource={orders} 
-              columns={columns} 
-              rowKey="id" 
+            <Table
+              dataSource={orders}
+              columns={columns}
+              rowKey="id"
               pagination={{ pageSize: 5 }}
             />
           ) : (
-            <Empty 
+            <Empty
               image={Empty.PRESENTED_IMAGE_SIMPLE}
               description={
                 <span style={{ color: '#999999', fontSize: '16px' }}>
@@ -261,9 +265,9 @@ const HomeContainer = () => {
               }
               style={{ padding: '32px 0' }}
             >
-              <Button 
-                type="primary" 
-                icon={<ShoppingCartOutlined />} 
+              <Button
+                type="primary"
+                icon={<ShoppingCartOutlined />}
                 onClick={handleOpenModal}
                 style={{ backgroundColor: '#5b5ce1', borderColor: '#5b5ce1' }}
               >
@@ -303,11 +307,11 @@ const HomeContainer = () => {
             label="Preço (€)"
             rules={[{ required: true, message: 'Insere o valor da encomenda!' }]}
           >
-            <InputNumber 
-              style={{ width: '100%' }} 
-              min={0.01} 
-              step={0.01} 
-              placeholder="Ex: 12.50" 
+            <InputNumber
+              style={{ width: '100%' }}
+              min={0.01}
+              step={0.01}
+              placeholder="Ex: 12.50"
               formatter={(value) => `${value}`}
             />
           </Form.Item>
@@ -323,7 +327,7 @@ const HomeContainer = () => {
 
           {/* Campo Número de Telemóvel */}
           <Form.Item
-            name="numero_telefone"
+            name="telefone"
             label="Telemóvel de Contacto"
             rules={[
               { required: true, message: 'Insere o contacto telefónico!' },
@@ -335,7 +339,7 @@ const HomeContainer = () => {
 
           {/* Campo Método de Pagamento */}
           <Form.Item
-            name="metodo_pagamento"
+            name="pagamento"
             label="Método de Pagamento"
             rules={[{ required: true }]}
           >

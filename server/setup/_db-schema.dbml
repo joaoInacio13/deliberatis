@@ -1,24 +1,35 @@
-Table encomenda {
-  id int [pk, increment]
-  cliente_id int [not null, note: 'cliente']
-  descricao text [not null, note: 'descricao']
-  estado varchar(250) [not null, note: 'estado']
-  localizacao text [not null, note: 'localizacao']
-  metodo_pagamento varchar(250) [not null, note: 'metodo_pagamento']
-  numero_telefone varchar(250) [not null, note: 'numero_telefone']
-  observacoes text [note: 'observacoes']
-  preco real [not null, note: 'preco']
-  Note: 'Encomenda'
-}
-
-Table utilizador {
+Table cliente {
   id int [pk, increment]
   data_de_nascimento date [not null, note: 'Data de Nascimento']
   email varchar(250) [not null, unique, note: 'Email']
   password text [not null, note: 'password']
   primeiro_nome varchar(250) [not null, note: 'Primeiro Nome']
-  tipo_de_utilizador varchar(250) [not null, note: 'Tipo de Utilizador']
   ultimo_nome varchar(250) [not null, note: 'Ultimo Nome']
-  Note: 'Utilizador'
+  Note: 'Cliente'
+}
+
+Table encomenda {
+  id int [pk, increment]
+  cliente_id int [not null, ref: > cliente.id, note: 'cliente']
+  descricao text [not null, note: 'descricao']
+  estado_id int [not null, ref: > estado_encomenda.id, note: 'estado']
+  localizacao text [not null, note: 'localizacao']
+  observacoes text [note: 'observacoes']
+  pagamento_id int [not null, ref: > pagamento.id, note: 'pagamento']
+  preco real [not null, note: 'preco']
+  telefone varchar(250) [not null, note: 'telefone']
+  Note: 'Encomenda'
+}
+
+Table estado_encomenda {
+  id int [pk, increment]
+  nome varchar(250) [not null, unique, note: 'Nome']
+  Note: 'EstadoEncomenda'
+}
+
+Table pagamento {
+  id int [pk, increment]
+  nome varchar(250) [not null, unique, note: 'Nome']
+  Note: 'Pagamento'
 }
 

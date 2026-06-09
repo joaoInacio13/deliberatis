@@ -1,82 +1,183 @@
-# Documentação do Fluxo de Autenticação (Deliberatis)
+# 🔐 Documentação do Fluxo de Autenticação (Deliberatis)
 
-Este documento descreve detalhadamente o funcionamento dos formulários de Registo e Login, a validação de dados, a encriptação de palavras-passe, e o mecanismo de controlo de sessão usando JWT (JSON Web Tokens) no projeto **Deliberatis**.
-
----
-
-## 1. Arquitetura Geral
-
-O projeto foi reestruturado de forma similar ao **Diversa21**, separando o código público (site/login/registo) do backoffice administrativo:
-*   **`website/`**: Contém o frontend público baseado em React + Vite. O build do JavaScript é exportado diretamente para a pasta pública do Netuno em `public/scripts/website.js`.
-*   **`ui/`**: Focado unicamente na administração do Netuno (`DashboardContainer`), compilando para `public/scripts/ui.js`.
-*   **`public/`**: Pasta de ficheiros estáticos do Netuno. Contém `auth.html` (portal de registo/login) e `home.html` (página reservada).
-*   **`server/services/`**: Endpoints de API desenvolvidos em JavaScript (correndo em GraalVM no Netuno) que comunicam com a base de dados H2.
+Este documento detalha o funcionamento do sistema de autenticação do **Deliberatis**, baseado no mecanismo nativo de **JSON Web Token (JWT)** e recursos de utilizadores do framework **Netuno**.
 
 ---
 
-## 2. Formulário de Registo (Sign Up)
+## 🗺️ Visão Geral da Arquitetura
 
-O registo recolhe dados do utilizador, valida as regras de negócio no frontend e envia-os de forma segura para o backend.
+O sistema de autenticação é integrado, ligando a interface React ao motor de segurança nativo do Netuno e a uma tabela customizada de perfil no H2:
 
-### Frontend (`website/src/containers/AuthContainer/register.jsx`)
-*   **Campos recolhidos:** Primeiro Nome, Último Nome, Email, Password, Data de Nascimento.
-*   **Regras de Validação no Frontend:**
-    1.  **Nomes:** Deve conter pelo menos 2 caracteres e apenas letras (rejeita números ou símbolos especiais, mas aceita acentos portugueses, hífens e apóstrofos).
-    2.  **Email:** Deve ter o formato padrão de email (`exemplo@dominio.com`).
-    3.  **Password:** Mínimo de 6 caracteres, contendo pelo menos uma letra maiúscula e um número.
-    4.  **Idade Mínima (16 anos):** O calendário (`DatePicker` do Ant Design) desativa a seleção de datas que correspondam a menos de 16 anos e abre posicionado exatamente há 16 anos atrás para poupar cliques ao utilizador.
-*   **Comunicação:** Efetua um pedido POST via `@netuno/service-client` para o endpoint `/services/register`.
-
-### Backend (`server/services/register.post.js`)
-*   **Validações de Segurança (Defensiva):**
-    *   Verifica se todos os campos obrigatórios estão preenchidos.
-    *   Valida novamente as regras de tamanho e formato dos nomes, password e idade mínima (16 anos).
-    *   Pesquisa na base de dados para garantir que o **email** já não se encontra registado.
-*   **Encriptação da Password:**
-    *   A password nunca é gravada em texto limpo.
-    *   É gerado um salt seguro usando `_crypto.bcryptSalt()`.
-    *   A password é encriptada através de `_crypto.bcryptHash(password, salt)` antes de ser inserida na tabela `utilizador`.
-*   **Base de Dados:** Os utilizadores são registados na tabela `utilizador` com o estado `active: true` e a coluna `tipo_de_utilizador: "cliente"`.
+```mermaid
+graph TD
+    A[React Website] -->|POST /services/register| B[Serviço de Registo]
+    A -->|POST /services/_auth| C[Serviço de Autenticação Nativo]
+    A -->|POST /services/check-session| D[Serviço de Validação de Sessão]
+    
+    B -->|1. Cria Utilizador| E[(netuno_user)]
+    B -->|2. Associa Grupo| F[(netuno_group)]
+    B -->|3. Cria Perfil| G[(utilizador)]
+    
+    C -->|Valida credenciais| E
+    C -->|Retorna Token| A
+    
+    D -->|Valida JWT no Header| C
+    D -->|Obtém perfil por user_id| G
+```
 
 ---
 
-## 3. Formulário de Login & Emissão de JWT
+## 📁 Ficheiros Envolvidos
 
-O login autentica o utilizador e emite um token assinado digitalmente.
-
-### Frontend (`website/src/containers/AuthContainer/login.jsx`)
-*   **Campos recolhidos:** Email e Password.
-*   **Comunicação:** Efetua um pedido POST para `/services/login`.
-*   **Sucesso:** O servidor devolve um token JWT. O frontend guarda-o no browser através de `localStorage.setItem('user_session_token', token)` e redireciona o utilizador para `/public/home.html`.
-
-### Backend (`server/services/login.post.js`)
-*   **Validação da Password (Bcrypt):**
-    *   Recupera o hash Bcrypt armazenado para o email fornecido.
-    *   Gera um hash com a password fornecida usando o hash guardado como salt: `_crypto.bcryptHash(password, storedHash)`.
-    *   Se o resultado bater certo com o hash original, a credencial é correta.
-*   **Geração de Token JWT (Stateless):**
-    *   Como o Netuno corre sobre GraalVM/JVM, usamos as classes nativas do Java (`java.util.Base64` e `javax.crypto.Mac`) para construir e assinar o token de forma segura, sem dependências externas.
-    *   **Header:** `{"alg":"HS256","typ":"JWT"}` (Base64)
-    *   **Payload:** Contém o email do utilizador e a data de expiração (`exp` = 24 horas a partir do momento atual).
-    *   **Assinatura:** Assinatura HmacSHA256 gerada a partir do `Header.Payload` usando uma chave secreta do servidor de 32+ caracteres.
+*   **Configuração:**
+    *   [`config/_development.json`](file:///home/joao_inacio/netuno/apps/deliberatis/config/_development.json): Configuração do segredo e expiração do JWT.
+*   **Serviços Backend:**
+    *   [`server/services/register.post.js`](file:///home/joao_inacio/netuno/apps/deliberatis/server/services/register.post.js): Processa o registo de novos utilizadores.
+    *   [`server/services/check-session.post.js`](file:///home/joao_inacio/netuno/apps/deliberatis/server/services/check-session.post.js): Valida a sessão ativa do utilizador.
+*   **Componentes Frontend:**
+    *   [`website/src/containers/AuthContainer/register.jsx`](file:///home/joao_inacio/netuno/apps/deliberatis/website/src/containers/AuthContainer/register.jsx): Ecrã de Registo.
+    *   [`website/src/containers/AuthContainer/login.jsx`](file:///home/joao_inacio/netuno/apps/deliberatis/website/src/containers/AuthContainer/login.jsx): Ecrã de Login.
+    *   [`website/src/containers/HomeContainer/index.jsx`](file:///home/joao_inacio/netuno/apps/deliberatis/website/src/containers/HomeContainer/index.jsx): Dashboard Principal (onde a sessão é validada).
 
 ---
 
-## 4. Proteção de Páginas Privadas (JWT)
+## 1. ⚙️ Configuração do JWT no Netuno
 
-A página reservada `home.html` está protegida contra acessos anónimos.
+A autenticação utiliza o suporte nativo a JWT do Netuno. Está ativado em `config/_development.json`:
 
-### Frontend (`public/home.html`)
-*   Ao carregar, um script autoinvocado (`IIFE`) verifica se existe o token no `localStorage`.
-*   **Se não existir:** Redireciona imediatamente para `auth.html`.
-*   **Se existir:** Faz um pedido POST em segundo plano para `/services/check-session` passando o token.
-    *   Se for válido: Mostra o conteúdo da página ao utilizador e altera dinamicamente a mensagem de cabeçalho para "Bem-vindo, [Nome]!" com o primeiro nome retornado.
-    *   Se for inválido/expirado: Limpa o `localStorage` e expulsa o utilizador para `auth.html`.
-*   **Logout:** Ao clicar em "Terminar Sessão", limpa o `user_session_token` do `localStorage` e redireciona o utilizador.
+```json
+"auth": {
+  "jwt": {
+    "enabled": true,
+    "secret": "MinhaChaveSecretaDeliberatisSuperSegura123!",
+    "expires": {
+      "access": 1440,
+      "refresh": 1440
+    }
+  }
+}
+```
 
-### Backend (`server/services/check-session.post.js`)
-*   Recupera a assinatura HmacSHA256 calculada com a chave secreta e compara com a assinatura contida no token para garantir que o token não foi adulterado no cliente.
-*   Verifica a data de expiração (`exp`) contida no payload do token em relação ao relógio atual do servidor.
-*   Se for válido, faz um pedido à base de dados para pesquisar o `primeiro_nome` associado ao email do token e retorna-o.
-*   Retorna `result: true` se o token for válido e íntegro.
+*   **`secret`**: Chave secreta usada para assinar digitalmente os tokens e garantir a sua autenticidade.
+*   **`expires`**: Tempo de vida dos tokens (em minutos).
 
+---
+
+## 2. 📝 Fluxo de Registo (Sign Up)
+
+O registo cria um utilizador do sistema Netuno e, simultaneamente, cria um perfil correspondente na tabela customizada `utilizador`.
+
+```mermaid
+sequenceDiagram
+    participant Cliente as Frontend (React)
+    participant Register as server/services/register.post.js
+    participant Netuno as Motor Netuno
+    participant DB as Base de Dados (H2)
+
+    Cliente->>Register: Envia Nome, Email, Password, Dt. Nascimento
+    Note over Register: Validações (Nome, Password forte, Idade >= 16)
+    Register->>DB: Verifica duplicados (mail/user)
+    
+    rect rgb(240, 240, 255)
+        Note over Register: Se não existir:
+        Register->>DB: Garante que grupo 'cliente' existe (com login_allowed = true)
+        Register->>Netuno: _user.create()
+        Netuno->>DB: Cria utilizador com pass hashada na netuno_user
+        Register->>DB: Associa o utilizador ao grupo 'cliente' (UPDATE netuno_user)
+        Register->>DB: Encripta password com bcrypt e guarda perfil em 'utilizador' (user_id = newUserId)
+    end
+    
+    Register-->>Cliente: Retorna { result: true }
+```
+
+### Detalhes do Registo Backend
+O script [`register.post.js`](file:///home/joao_inacio/netuno/apps/deliberatis/server/services/register.post.js) faz o seguinte:
+1.  **Validações**: Garante que o utilizador tem pelo menos 16 anos e que o nome e password cumprem as regras de força e formato.
+2.  **Verificação de Duplicado**: Garante que o email ou utilizador não existem previamente em `netuno_user`.
+3.  **Grupo de Acesso**: Procura ou cria o grupo com o código `"cliente"` via SQL com `"login_allowed" = true` para garantir que o utilizador consiga entrar.
+4.  **Criação do Utilizador Nativo**: Usa `_user.create(...)` para criar o utilizador no Netuno. O Netuno gera automaticamente o hash seguro da password.
+5.  **Associação de Grupo**: Atualiza a tabela `netuno_user` para ligar o utilizador ao ID do grupo `"cliente"`.
+6.  **Criação do Perfil**: Encripta a password usando o recurso `_crypto` (bcrypt) para respeitar o constrangimento obrigatório da tabela customizada `utilizador`, e insere o perfil relacionando com a coluna `user_id` correspondente.
+
+---
+
+## 3. 🔑 Fluxo de Login & Obtenção do Token
+
+O login delega a validação diretamente ao serviço nativo e otimizado do Netuno: `/_auth`.
+
+```mermaid
+sequenceDiagram
+    participant Cliente as Frontend (React)
+    participant Auth as Netuno Native /_auth
+    participant DB as Base de Dados (H2)
+
+    Cliente->>Auth: POST /services/_auth (username, password, jwt: true)
+    Auth->>DB: Valida contra netuno_user e netuno_group (login_allowed)
+    Alt Credenciais Válidas
+        Auth-->>Cliente: Retorna { result: true, access_token: "...", expires_in: ... }
+        Note over Cliente: Guarda token no localStorage ('user_session_token')
+    Else Credenciais Inválidas ou Sem Permissão
+        Auth-->>Cliente: Retorna 403 Forbidden { locked: false, result: false }
+    End
+```
+
+### Detalhes do Login
+*   No frontend, o ficheiro [`login.jsx`](file:///home/joao_inacio/netuno/apps/deliberatis/website/src/containers/AuthContainer/login.jsx) submete os dados de login:
+    ```javascript
+    _service({
+      url: '/_auth',
+      method: 'POST',
+      data: {
+        username: values.email, // Netuno usa a coluna 'user'
+        password: values.password,
+        jwt: true
+      },
+      // ...
+    ```
+*   Ao obter sucesso, o token é guardado e o utilizador é redirecionado para `/public/home.html`.
+
+---
+
+## 4. 🛡️ Fluxo de Validação de Sessão (check-session)
+
+Uma vez com o token, todas as comunicações privadas são protegidas usando o Header HTTP `Authorization`.
+
+```mermaid
+sequenceDiagram
+    participant Cliente as Frontend (React)
+    participant Netuno as Gateway JWT Netuno
+    participant Session as server/services/check-session.post.js
+    participant DB as Base de Dados (H2)
+
+    Cliente->>Netuno: POST /services/check-session (Header Authorization: Bearer <token>)
+    Note over Netuno: Valida assinatura e expiração do JWT
+    Alt Token Inválido/Ausente
+        Netuno-->>Cliente: Bloqueia com 401 / 403 (Script não executa)
+        Note over Cliente: Limpa token e manda para ecrã de login
+    Else Token Válido
+        Netuno->>Session: Executa script (Injeta contexto _user)
+        Session->>DB: SELECT primeiro_nome, email FROM utilizador WHERE user_id = ?
+        Session-->>Cliente: Retorna { result: true, primeiro_nome: "Joao", email: "..." }
+    End
+```
+
+### Detalhes da Validação
+1.  **Interceção Automática**: Como o serviço [`check-session.post.js`](file:///home/joao_inacio/netuno/apps/deliberatis/server/services/check-session.post.js) é privado por padrão no Netuno, o gateway do framework valida a assinatura criptográfica e validade do token passado no header HTTP `Authorization: Bearer <token>` antes de correr o script.
+2.  **Utilizador Autenticado**: Se o token for válido, o Netuno expõe a informação do utilizador autenticado no recurso `_user` (como `_user.id()`).
+3.  **Procura do Perfil**: O script faz uma query à tabela `utilizador` para obter dados complementares (como o `primeiro_nome` e `email` do perfil do utilizador) e responde ao cliente:
+    ```javascript
+    const userId = _user.id();
+    const userQuery = _db.query(
+      "SELECT primeiro_nome, email FROM utilizador WHERE user_id = ? AND active = true",
+      userId
+    );
+    if (userQuery.size() > 0) {
+      const user = userQuery.get(0);
+      _out.json(_val.map()
+        .set("result", true)
+        .set("email", user.getString("email"))
+        .set("primeiro_nome", user.getString("primeiro_nome"))
+      );
+    }
+    ```
+4.  Se o `/check-session` falhar, o frontend executa o método `logout()`, que limpa os tokens salvos e envia o utilizador de volta para o formulário de login de forma segura.

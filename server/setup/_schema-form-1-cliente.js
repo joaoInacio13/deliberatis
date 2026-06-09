@@ -22,12 +22,12 @@ _form.createIfNotExists(
 		.set("export_xls", true)
 		.set("export_xml", true)
 		.set("firebase", "")
-		.set("name", "utilizador")
+		.set("name", "cliente")
 		.set("reorder", 0)
 		.set("report", false)
 		.set("report_behaviour", 0)
 		.set("show_id", true)
-		.set("title", "Utilizador")
+		.set("title", "Cliente")
 		.set("uid", "d800dae0-3567-4f98-a38c-05ea7b747282")
 );
 _form.createComponentIfNotExists(
@@ -153,37 +153,6 @@ _form.createComponentIfNotExists(
 		.set("width", 0)
 		.set("x", 1)
 		.set("y", 1)
-);
-_form.createComponentIfNotExists(
-	"d800dae0-3567-4f98-a38c-05ea7b747282",
-	_val.map()
-		.set("colspan", 0)
-		.set("description", "")
-		.set("firebase", "")
-		.set("group_id", 0)
-		.set("height", 0)
-		.set("mandatory", true)
-		.set("max", 0)
-		.set("min", 0)
-		.set("name", "tipo_de_utilizador")
-		.set("properties", "{\"MASK\":{\"default\":\"\",\"type\":\"STRING\",\"value\":\"\"},\"MASK_REVERSE\":{\"default\":\"false\",\"type\":\"BOOLEAN\",\"value\":\"false\"},\"MASK_SELECTONFOCUS\":{\"default\":\"false\",\"type\":\"BOOLEAN\",\"value\":\"false\"}}")
-		.set("rowspan", 0)
-		.set("tdheight", 0)
-		.set("tdwidth", 0)
-		.set("title", "Tipo de Utilizador")
-		.set("type", "text")
-		.set("uid", "095b10a9-ac68-4dbb-91d5-23a8303e8202")
-		.set("unique", false)
-		.set("user_id", 0)
-		.set("whenedit", true)
-		.set("whenexport", true)
-		.set("whenfilter", true)
-		.set("whennew", true)
-		.set("whenresult", true)
-		.set("whenview", true)
-		.set("width", 0)
-		.set("x", 1)
-		.set("y", 6)
 );
 _form.createComponentIfNotExists(
 	"d800dae0-3567-4f98-a38c-05ea7b747282",

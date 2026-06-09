@@ -11,7 +11,6 @@ const { Option } = Select;
  * Componente do formulário de registo de utilizadores
  */
 const Register = ({ onNavigate }) => {
-  // Estado para controlar o loading do botão de submissão
   const [loading, setLoading] = useState(false);
 
   // Desativa a seleção de datas que não correspondam a pelo menos 16 anos de idade
@@ -19,7 +18,6 @@ const Register = ({ onNavigate }) => {
     return current && current > dayjs().subtract(16, 'year').endOf('day');
   };
 
-  // Processa a submissão do formulário
   const onFinish = (values) => {
     // Formata a data de nascimento para o padrão YYYY-MM-DD aceito pelo backend
     const formattedValues = {
@@ -27,24 +25,21 @@ const Register = ({ onNavigate }) => {
       data_de_nascimento: values.data_de_nascimento ? values.data_de_nascimento.format('YYYY-MM-DD') : null
     };
 
-    // Efetua o pedido POST para o serviço '/services/register' no Netuno
     _service({
       url: '/register',
       method: 'POST',
       data: formattedValues,
       start: () => {
-        setLoading(true); // Ativa o estado de carregamento
+        setLoading(true); 
       },
       success: ({ json }) => {
         if (json.result === true) {
-          // Exibe notificação de sucesso e redireciona para o login
           notification.success({
             message: 'Registo com Sucesso!',
             description: 'A tua conta foi criada com sucesso. Já podes fazer login.'
           });
           onNavigate('login');
         } else {
-          // Trata erros de lógica de negócio do backend (ex: email já em uso)
           notification.error({
             message: 'Erro no Registo',
             description: json.error || 'Não foi possível guardar os teus dados.'
@@ -59,7 +54,7 @@ const Register = ({ onNavigate }) => {
         });
       },
       end: () => {
-        setLoading(false); // Desativa o estado de carregamento
+        setLoading(false); 
       }
     });
   };

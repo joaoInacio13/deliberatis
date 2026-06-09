@@ -13,18 +13,22 @@ const Login = ({ onNavigate, onLoginFake }) => {
 
   const onFinish = (values) => {
     _service({
-      url: '/login',
+      url: '/_auth',
       method: 'POST',
-      data: values,
+      data: {
+        username: values.email,
+        password: values.password,
+        jwt: true
+      },
       start: () => {
         setLoading(true);
       },
       success: ({ json }) => {
         if (json.result === true) {
-          localStorage.setItem('user_session_token', json.token);
+          localStorage.setItem('user_session_token', json.access_token);
           notification.success({
             message: 'Sessão Iniciada!',
-            description: `Bem-vindo de volta, ${json.primeiro_nome}!`
+            description: 'Login efetuado com sucesso!'
           });
           onLoginFake(); // Redireciona para o portal/home
         } else {
@@ -38,7 +42,7 @@ const Login = ({ onNavigate, onLoginFake }) => {
         console.error("Login request failed: ", e);
         notification.error({
           message: 'Erro no Login',
-          description: 'Não foi possível ligar ao servidor.'
+          description: 'Não foi possível ligar ao servidor ou credenciais inválidas.'
         });
       },
       end: () => {
