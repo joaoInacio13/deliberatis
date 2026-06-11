@@ -1933,3 +1933,6 @@ select * from `` where id = 1 [42102-240]
 2026-06-09 12:23:37.133804+01:00 jdbc[3]: exception
 org.h2.jdbc.JdbcSQLSyntaxErrorException: Table  not found; SQL statement:
 select * from `` where id = 1 [42102-240]
+2026-06-09 14:39:25.606153+01:00 jdbc[13]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "codigopostal" not found; SQL statement:
+select * from codigopostal; [42102-240]

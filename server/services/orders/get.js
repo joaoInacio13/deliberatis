@@ -1,7 +1,7 @@
-import { _db, _val, _out, _user } from "@netuno/server-types";
+import { _db, _val, _out, _user, _header } from "@netuno/server-types";
 
 try {
-  // O Netuno valida o token JWT de forma transparente
+  // O Netuno valida automaticamente o token JWT enviado no Header Authorization.
   const userId = _user.id();
   let ordersList = _val.list();
 

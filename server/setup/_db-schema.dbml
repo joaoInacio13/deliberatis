@@ -1,21 +1,38 @@
+Table cidade {
+  id int [pk, increment]
+  nome varchar(250) [not null, unique, note: 'Nome']
+  Note: 'Cidade'
+}
+
 Table cliente {
   id int [pk, increment]
   data_de_nascimento date [not null, note: 'Data de Nascimento']
   email varchar(250) [not null, unique, note: 'Email']
+  nome varchar(250) [not null, unique, note: 'nome']
   password text [not null, note: 'password']
   primeiro_nome varchar(250) [not null, note: 'Primeiro Nome']
   ultimo_nome varchar(250) [not null, note: 'Ultimo Nome']
   Note: 'Cliente'
 }
 
+Table codigo_postal {
+  id int [pk, increment]
+  cidade_id int [not null, ref: > cidade.id, note: 'cidade']
+  codigo varchar(250) [not null, unique, note: 'codigo']
+  rua varchar(250) [not null, note: 'rua']
+  Note: 'CodigoPostal'
+}
+
 Table encomenda {
   id int [pk, increment]
+  andar varchar(250) [not null, note: 'andar']
   cliente_id int [not null, ref: > cliente.id, note: 'cliente']
+  codigo_postal_id int [not null, ref: > codigo_postal.id, note: 'codigo_postal']
   descricao text [not null, note: 'descricao']
   estado_id int [not null, ref: > estado_encomenda.id, note: 'estado']
-  localizacao text [not null, note: 'localizacao']
   observacoes text [note: 'observacoes']
   pagamento_id int [not null, ref: > pagamento.id, note: 'pagamento']
+  porta varchar(250) [not null, note: 'porta']
   preco real [not null, note: 'preco']
   telefone varchar(250) [not null, note: 'telefone']
   Note: 'Encomenda'
