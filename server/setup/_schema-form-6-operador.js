@@ -22,19 +22,18 @@ _form.createIfNotExists(
 		.set("export_xls", true)
 		.set("export_xml", true)
 		.set("firebase", "")
-		.set("name", "cliente")
+		.set("name", "operador")
 		.set("reorder", 0)
 		.set("report", false)
 		.set("report_behaviour", 0)
 		.set("show_id", true)
-		.set("title", "Cliente")
-		.set("uid", "d800dae0-3567-4f98-a38c-05ea7b747282")
+		.set("title", "Operador")
+		.set("uid", "b13272b6-eb53-4a07-802d-a028108a7b69")
 );
 _form.createComponentIfNotExists(
-	"d800dae0-3567-4f98-a38c-05ea7b747282",
+	"b13272b6-eb53-4a07-802d-a028108a7b69",
 	_val.map()
 		.set("colspan", 0)
-		.set("description", "")
 		.set("firebase", "")
 		.set("group_id", 0)
 		.set("height", 0)
@@ -48,7 +47,7 @@ _form.createComponentIfNotExists(
 		.set("tdwidth", 0)
 		.set("title", "Data de Nascimento")
 		.set("type", "date")
-		.set("uid", "a578fc6d-1ec4-4907-9453-7314d4af97ce")
+		.set("uid", "60e61c55-7651-443f-af9f-d5d106a5d983")
 		.set("unique", false)
 		.set("user_id", 0)
 		.set("whenedit", true)
@@ -62,10 +61,9 @@ _form.createComponentIfNotExists(
 		.set("y", 5)
 );
 _form.createComponentIfNotExists(
-	"d800dae0-3567-4f98-a38c-05ea7b747282",
+	"b13272b6-eb53-4a07-802d-a028108a7b69",
 	_val.map()
 		.set("colspan", 0)
-		.set("description", "")
 		.set("firebase", "")
 		.set("group_id", 0)
 		.set("height", 0)
@@ -79,7 +77,7 @@ _form.createComponentIfNotExists(
 		.set("tdwidth", 0)
 		.set("title", "Email")
 		.set("type", "email")
-		.set("uid", "a2418ed8-551b-4f75-9e92-15cf27d50d66")
+		.set("uid", "80d619a2-4ec1-413f-9dde-f1702588a3fd")
 		.set("unique", true)
 		.set("user_id", 0)
 		.set("whenedit", true)
@@ -93,7 +91,7 @@ _form.createComponentIfNotExists(
 		.set("y", 3)
 );
 _form.createComponentIfNotExists(
-	"d800dae0-3567-4f98-a38c-05ea7b747282",
+	"b13272b6-eb53-4a07-802d-a028108a7b69",
 	_val.map()
 		.set("colspan", 0)
 		.set("description", "")
@@ -110,7 +108,7 @@ _form.createComponentIfNotExists(
 		.set("tdwidth", 0)
 		.set("title", "password")
 		.set("type", "hidden")
-		.set("uid", "4d0ac944-38f5-4a37-9516-fcfb3fc6b6e0")
+		.set("uid", "6c306410-71a2-46f2-9413-1ecf48646ada")
 		.set("unique", false)
 		.set("user_id", 0)
 		.set("whenedit", true)
@@ -124,10 +122,9 @@ _form.createComponentIfNotExists(
 		.set("y", 4)
 );
 _form.createComponentIfNotExists(
-	"d800dae0-3567-4f98-a38c-05ea7b747282",
+	"b13272b6-eb53-4a07-802d-a028108a7b69",
 	_val.map()
 		.set("colspan", 0)
-		.set("description", "")
 		.set("firebase", "")
 		.set("group_id", 0)
 		.set("height", 0)
@@ -141,7 +138,7 @@ _form.createComponentIfNotExists(
 		.set("tdwidth", 0)
 		.set("title", "Primeiro Nome")
 		.set("type", "text")
-		.set("uid", "37726392-3971-43da-a7e0-0767397fa001")
+		.set("uid", "1bf47f2d-8924-48e0-9aa7-0ce2fca7c108")
 		.set("unique", false)
 		.set("user_id", 0)
 		.set("whenedit", true)
@@ -155,10 +152,9 @@ _form.createComponentIfNotExists(
 		.set("y", 1)
 );
 _form.createComponentIfNotExists(
-	"d800dae0-3567-4f98-a38c-05ea7b747282",
+	"b13272b6-eb53-4a07-802d-a028108a7b69",
 	_val.map()
 		.set("colspan", 0)
-		.set("description", "")
 		.set("firebase", "")
 		.set("group_id", 0)
 		.set("height", 0)
@@ -172,7 +168,7 @@ _form.createComponentIfNotExists(
 		.set("tdwidth", 0)
 		.set("title", "Ultimo Nome")
 		.set("type", "text")
-		.set("uid", "cbfa92cd-d1c8-4234-9ccd-e2cbebc0109b")
+		.set("uid", "62ef9a6f-9c56-43a3-a884-43ed59f610f2")
 		.set("unique", false)
 		.set("user_id", 0)
 		.set("whenedit", true)

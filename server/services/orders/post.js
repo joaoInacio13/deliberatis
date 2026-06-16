@@ -112,6 +112,12 @@ try {
             pagamentoId = pagamentoQuery.get(0).getInt("id");
           }
 
+          // Obtém coordenadas exatas passadas pelo frontend
+          const latitudeString = _req.getString("latitude");
+          const longitudeString = _req.getString("longitude");
+          const latitude = latitudeString ? parseFloat(latitudeString) : 0.0;
+          const longitude = longitudeString ? parseFloat(longitudeString) : 0.0;
+
           // Insere a nova encomenda associada ao cliente
           const id = _db.insert(
             "encomenda",
@@ -126,6 +132,8 @@ try {
               .set("telefone", telefone)
               .set("pagamento_id", pagamentoId)
               .set("estado_id", estadoId)
+              .set("latitude", latitude)
+              .set("longitude", longitude)
               .set("active", true)
           );
 

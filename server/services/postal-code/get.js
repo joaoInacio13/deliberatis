@@ -6,28 +6,23 @@ const DISTRITOS = [
   "Porto", "Santarém", "Setúbal", "Viana do Castelo", "Vila Real", "Viseu"
 ];
 
-const URL = Java.type("java.net.URL");
-const BufferedReader = Java.type("java.io.BufferedReader");
-const InputStreamReader = Java.type("java.io.InputStreamReader");
+const HttpClient = Java.type("java.net.http.HttpClient");
+const HttpRequest = Java.type("java.net.http.HttpRequest");
+const HttpResponse = Java.type("java.net.http.HttpResponse");
+const URI = Java.type("java.net.URI");
 
 function httpGet(urlString) {
-  const url = new URL(urlString);
-  const con = url.openConnection();
-  con.setRequestMethod("GET");
-  con.setRequestProperty("User-Agent", "Mozilla/5.0 (Deliberatis App)");
-  const status = con.getResponseCode();
+  const client = HttpClient.newHttpClient();
+  const request = HttpRequest.newBuilder()
+    .uri(URI.create(urlString))
+    .header("User-Agent", "Mozilla/5.0 (Deliberatis App)")
+    .GET()
+    .build();
+  const response = client.send(request, HttpResponse.BodyHandlers.ofString());
+  const status = response.statusCode();
   if (status === 200) {
-    const inStream = new BufferedReader(new InputStreamReader(con.getInputStream(), "UTF-8"));
-    let inputLine;
-    let content = "";
-    while ((inputLine = inStream.readLine()) !== null) {
-      content += inputLine;
-    }
-    inStream.close();
-    con.disconnect();
-    return content;
+    return response.body();
   }
-  con.disconnect();
   throw new Error("HTTP error " + status);
 }
 

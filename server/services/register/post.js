@@ -85,9 +85,12 @@ if (!primeiroNome || !ultimoNome || !email || !password || !dataNascimento) {
 
           const passwordEncriptada = _crypto.bcryptHash(password, _crypto.bcryptSalt());
 
-          // 3. Insere o perfil detalhado na tabela customizada 'cliente' ligando ao utilizador do Netuno
+          const isOperador = email.endsWith("deliberatis.com");
+          const tableName = isOperador ? "operador" : "cliente";
+
+          // 3. Insere o perfil detalhado na tabela customizada correspondente ligando ao utilizador do Netuno
           const id = _db.insert(
-            "cliente",
+            tableName,
             _val.map()
               .set("user_id", newUserId)
               .set("group_id", groupId)

@@ -1,8 +1,9 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 import _service from '@netuno/service-client';
-import AuthContainer from "./containers/AuthContainer";
-import HomeContainer from "./containers/HomeContainer";
+import AuthContainer from "./pages/Auth";
+import HomeContainer from "./pages/Home";
+import OrderDetailsContainer from "./pages/OrderDetails";
 
 import { ConfigProvider } from "antd";
 import antLocale_ptPT from "antd/lib/locale/pt_PT";
@@ -58,4 +59,26 @@ if (homeContainer) {
     </ConfigProvider>
   );
 }
+
+// Deteta se o elemento de base dos Detalhes da Encomenda está presente no DOM (ex: na página order-details.html)
+const detailsDiv = document.getElementById("app-order-details");
+const detailsContainer = detailsDiv ? createRoot(detailsDiv) : false;
+
+if (detailsContainer) {
+  detailsContainer.render(
+    <ConfigProvider
+      theme={{
+        token: {
+          colorPrimary: '#5b5ce1',
+          colorLink: '#5b5ce1',
+          borderRadius: 5,
+        }
+      }}
+      locale={antLocale_ptPT}
+    >
+      <OrderDetailsContainer />
+    </ConfigProvider>
+  );
+}
+
 

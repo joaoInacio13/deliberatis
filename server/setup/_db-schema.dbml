@@ -8,7 +8,6 @@ Table cliente {
   id int [pk, increment]
   data_de_nascimento date [not null, note: 'Data de Nascimento']
   email varchar(250) [not null, unique, note: 'Email']
-  nome varchar(250) [not null, unique, note: 'nome']
   password text [not null, note: 'password']
   primeiro_nome varchar(250) [not null, note: 'Primeiro Nome']
   ultimo_nome varchar(250) [not null, note: 'Ultimo Nome']
@@ -30,6 +29,8 @@ Table encomenda {
   codigo_postal_id int [not null, ref: > codigo_postal.id, note: 'codigo_postal']
   descricao text [not null, note: 'descricao']
   estado_id int [not null, ref: > estado_encomenda.id, note: 'estado']
+  latitude real [not null, note: 'Latitude']
+  longitude real [not null, note: 'Longitude']
   observacoes text [note: 'observacoes']
   pagamento_id int [not null, ref: > pagamento.id, note: 'pagamento']
   porta varchar(250) [not null, note: 'porta']
@@ -42,6 +43,16 @@ Table estado_encomenda {
   id int [pk, increment]
   nome varchar(250) [not null, unique, note: 'Nome']
   Note: 'EstadoEncomenda'
+}
+
+Table operador {
+  id int [pk, increment]
+  data_de_nascimento date [not null, note: 'Data de Nascimento']
+  email varchar(250) [not null, unique, note: 'Email']
+  password text [not null, note: 'password']
+  primeiro_nome varchar(250) [not null, note: 'Primeiro Nome']
+  ultimo_nome varchar(250) [not null, note: 'Ultimo Nome']
+  Note: 'Operador'
 }
 
 Table pagamento {

@@ -1,0 +1,252 @@
+import React, { useEffect, useState, useRef } from 'react';
+import { Layout, Button, Spin, Row, Col, notification } from 'antd';
+import { ArrowLeftOutlined, EditOutlined } from '@ant-design/icons';
+import _service from '@netuno/service-client';
+
+import OrderTimeline from '../../components/OrderDetailsComponent/OrderTimeline';
+import OrderDetailsInfo from '../../components/OrderDetailsComponent/OrderDetailsInfo';
+import OrderDetailsMap from '../../components/OrderDetailsComponent/OrderDetailsMap';
+
+const { Header, Content } = Layout;
+
+const formatDate = (dateStr) => {
+  if (!dateStr) return '';
+  const parts = dateStr.substring(0, 19).split(' ');
+  if (parts.length === 2) {
+    const dateParts = parts[0].split('-');
+    if (dateParts.length === 3) {
+      const [year, month, day] = dateParts;
+      return `${day}/${month}/${year} ${parts[1]}`;
+    }
+  }
+  return dateStr;
+};
+
+
+const OrderDetailsContainer = () => {
+  const [loading, setLoading] = useState(true);
+  const [userName, setUserName] = useState('');
+  const [order, setOrder] = useState(null);
+  const [uid, setUid] = useState('');
+
+  const mapRef = useRef(null);
+  const mapInstanceRef = useRef(null);
+  const markerInstanceRef = useRef(null);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const orderUid = params.get('uid');
+    if (!orderUid) {
+      notification.error({
+        message: 'Erro',
+        description: 'Código de encomenda não fornecido.'
+      });
+      window.location.href = "/public/home.html";
+      return;
+    }
+    setUid(orderUid);
+
+    const token = localStorage.getItem('user_session_token');
+    if (!token) {
+      window.location.href = "/public/auth.html";
+      return;
+    }
+
+    _service({
+      url: '/check-session',
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + token
+      },
+      success: ({ json }) => {
+        if (json.result === true) {
+          setUserName(json.primeiro_nome);
+          loadOrderDetails(token, orderUid);
+        } else {
+          logout();
+        }
+      },
+      fail: () => {
+        notification.error({
+          message: 'Erro de Sessão',
+          description: 'Houve uma falha ao verificar a tua sessão.'
+        });
+        logout();
+      }
+    });
+
+    return () => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (order && order.latitude && order.longitude && mapRef.current && !mapInstanceRef.current) {
+      initMap(order.latitude, order.longitude);
+    }
+  }, [order]);
+
+  const loadOrderDetails = (token, orderUid) => {
+    _service({
+      url: '/order',
+      method: 'GET',
+      headers: {
+        'Authorization': 'Bearer ' + token
+      },
+      data: { uid: orderUid },
+      success: ({ json }) => {
+        if (json.result === true && json.order) {
+          const fetchedOrder = json.order;
+          setOrder(fetchedOrder);
+        } else {
+          notification.error({
+            message: 'Erro',
+            description: 'Encomenda não encontrada.'
+          });
+          setTimeout(() => {
+            window.location.href = "/public/home.html";
+          }, 2000);
+        }
+      },
+      fail: () => {
+        notification.error({
+          message: 'Erro de Rede',
+          description: 'Não foi possível carregar os detalhes da encomenda.'
+        });
+      },
+      end: () => {
+        setLoading(false);
+      }
+    });
+  };
+
+  const initMap = (lat, lng) => {
+    const L = window.L;
+    if (!L || !mapRef.current || mapInstanceRef.current) return;
+
+    const map = L.map(mapRef.current, {
+      zoomControl: true,
+      scrollWheelZoom: false
+    }).setView([lat, lng], 15);
+    mapInstanceRef.current = map;
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    markerInstanceRef.current = L.marker([lat, lng]).addTo(map)
+      .bindPopup('Morada de Entrega')
+      .openPopup();
+  };
+
+  const logout = () => {
+    localStorage.removeItem('user_session_token');
+    window.location.href = "/public/auth.html";
+  };
+
+  const getStatusIndex = (status) => {
+    switch (status) {
+      case 'Pendente':
+        return 0;
+      case 'Em Trânsito':
+        return 1;
+      case 'Entregue':
+        return 2;
+      default:
+        return 0;
+    }
+  };
+
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', backgroundColor: '#f5f5f5' }}>
+        <Spin size="large" tip="A carregar detalhes da encomenda..." />
+      </div>
+    );
+  }
+
+  const statusIndex = order ? getStatusIndex(order.estado) : 0;
+
+  return (
+    <Layout style={{ minHeight: '100vh', backgroundColor: '#f5f5f5' }}>
+      <Header style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        background: '#ffffff',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+        padding: '0 24px',
+        position: 'sticky',
+        top: 0,
+        zIndex: 10
+      }}>
+        <div style={{
+          fontSize: '22px',
+          fontWeight: '800',
+          color: '#5b5ce1',
+          letterSpacing: '1px',
+          fontFamily: "'Outfit', sans-serif"
+        }}>
+          DELIBERATIS
+        </div>
+        <div style={{ color: '#666', fontWeight: '500', fontSize: '16px' }}>
+          Olá, {userName}
+        </div>
+      </Header>
+
+      <Content style={{ padding: '40px 24px', maxWidth: '1100px', width: '100%', margin: '0 auto' }}>
+        <div style={{ marginBottom: '32px', display: 'flex', alignItems: 'center', position: 'relative', minHeight: '48px' }}>
+          <Button 
+            type="primary" 
+            size="large"
+            icon={<ArrowLeftOutlined />} 
+            onClick={() => window.location.href = "/public/home.html"}
+            style={{ borderRadius: '6px', backgroundColor: '#5b5ce1', borderColor: '#5b5ce1', position: 'absolute', left: 0, paddingLeft: '20px', paddingRight: '20px' }}
+          >
+            Voltar
+          </Button>
+          <div style={{ flex: 1, textAlign: 'center' }}>
+            <h2 style={{ margin: 0, color: '#333333', fontSize: '30px', fontWeight: '600' }}>
+              Detalhes da Encomenda
+            </h2>
+            <p style={{ color: '#888', margin: '4px 0 0 0', fontSize: '16px' }}>Código único: #{uid}</p>
+          </div>
+          {order && (
+            <Button 
+              type="primary"
+              size="large"
+              icon={<EditOutlined />}
+              disabled={order.estado !== 'Pendente'}
+              style={{ borderRadius: '6px', position: 'absolute', right: 0, backgroundColor: order.estado === 'Pendente' ? '#5b5ce1' : undefined, borderColor: order.estado === 'Pendente' ? '#5b5ce1' : undefined }}
+            >
+              Editar
+            </Button>
+          )}
+        </div>
+
+        {order && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+            {/* Timeline do Estado */}
+            <OrderTimeline statusIndex={statusIndex} />
+
+            {/* Informações e Mapa */}
+            <Row gutter={[32, 32]}>
+              <Col xs={24} md={12}>
+                <OrderDetailsInfo order={order} formatDate={formatDate} />
+              </Col>
+
+              <Col xs={24} md={12}>
+                <OrderDetailsMap order={order} mapRef={mapRef} />
+              </Col>
+            </Row>
+          </div>
+        )}
+      </Content>
+    </Layout>
+  );
+};
+
+export default OrderDetailsContainer;

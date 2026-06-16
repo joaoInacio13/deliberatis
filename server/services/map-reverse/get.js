@@ -7,30 +7,26 @@ try {
   if (!lat || !lng) {
     _out.json(_val.map().set("result", false).set("error", "Parâmetros 'lat' e 'lng' obrigatórios."));
   } else {
-    const URL = Java.type("java.net.URL");
-    const BufferedReader = Java.type("java.io.BufferedReader");
-    const InputStreamReader = Java.type("java.io.InputStreamReader");
+    const HttpClient = Java.type("java.net.http.HttpClient");
+    const HttpRequest = Java.type("java.net.http.HttpRequest");
+    const HttpResponse = Java.type("java.net.http.HttpResponse");
+    const URI = Java.type("java.net.URI");
 
     const urlString = "https://nominatim.openstreetmap.org/reverse?lat=" + lat + "&lon=" + lng + "&format=json&addressdetails=1";
-    const url = new URL(urlString);
-    const con = url.openConnection();
-    con.setRequestMethod("GET");
-    con.setRequestProperty("User-Agent", "Mozilla/5.0 (Deliberatis App)");
     
-    const status = con.getResponseCode();
-    if (status === 200) {
-      const inStream = new BufferedReader(new InputStreamReader(con.getInputStream(), "UTF-8"));
-      let inputLine;
-      let content = "";
-      while ((inputLine = inStream.readLine()) !== null) {
-        content += inputLine;
-      }
-      inStream.close();
-      con.disconnect();
+    const client = HttpClient.newHttpClient();
+    const request = HttpRequest.newBuilder()
+      .uri(URI.create(urlString))
+      .header("User-Agent", "Mozilla/5.0 (Deliberatis App)")
+      .GET()
+      .build();
 
-      _out.json(JSON.parse(content));
+    const response = client.send(request, HttpResponse.BodyHandlers.ofString());
+    const status = response.statusCode();
+
+    if (status === 200) {
+      _out.json(JSON.parse(response.body()));
     } else {
-      con.disconnect();
       _header.status(status);
       _out.json(_val.map().set("result", false).set("error", "Erro ao comunicar com o Nominatim. Status: " + status));
     }
