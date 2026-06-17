@@ -1,6 +1,6 @@
-import React from 'react';
-import { Table, Button, Empty } from 'antd';
-import { ShoppingCartOutlined } from '@ant-design/icons';
+import React, { useState } from 'react';
+import { Table, Button, Empty, Segmented } from 'antd';
+import { ShoppingCartOutlined, CarOutlined, CheckCircleOutlined, CloseCircleOutlined } from '@ant-design/icons';
 
 const formatDate = (dateStr) => {
   if (!dateStr) return '';
@@ -15,42 +15,66 @@ const formatDate = (dateStr) => {
   return dateStr;
 };
 
-const OrdersTable = ({ orders, handleOpenCreateModal }) => {
+const OrdersTableCliente = ({ orders, handleOpenCreateModal }) => {
+  const [selectedStatus, setSelectedStatus] = useState('Todos');
+
+  const filteredOrders = selectedStatus === 'Todos'
+    ? orders
+    : orders.filter(order => order.estado === selectedStatus);
+
   const columns = [
     {
       title: 'Data',
       dataIndex: 'data',
       key: 'data',
-      render: (text) => formatDate(text)
+      render: (text) => formatDate(text),
+      sorter: (a, b) => (a.data || '').localeCompare(b.data || '')
     },
     {
       title: 'Descrição',
       dataIndex: 'descricao',
       key: 'descricao',
+      sorter: (a, b) => (a.descricao || '').localeCompare(b.descricao || '')
     },
     {
       title: 'Valor',
       dataIndex: 'valor',
       key: 'valor',
       render: (valor) => `${valor.toFixed(2)}€`,
+      sorter: (a, b) => (a.valor || 0) - (b.valor || 0)
     },
     {
       title: 'Estado',
       dataIndex: 'estado',
       key: 'estado',
       render: (estado) => {
-        let color = '#f0ad4e';
-        let dotClass = 'dot-pulse-orange';
         if (estado === 'Em Trânsito') {
-          color = '#5b5ce1';
-          dotClass = 'dot-pulse-blue';
+          return (
+            <span style={{ fontWeight: 'bold', color: '#5b5ce1', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+              <span className="car-animation-wrapper">
+                <CarOutlined style={{ fontSize: '16px' }} />
+              </span>
+              {estado}
+            </span>
+          );
         } else if (estado === 'Entregue') {
-          color = '#5cb85c';
-          dotClass = 'dot-static-green';
+          return (
+            <span style={{ fontWeight: 'bold', color: '#2eb82e', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+              <CheckCircleOutlined style={{ fontSize: '15px' }} />
+              {estado}
+            </span>
+          );
+        } else if (estado === 'Rejeitada') {
+          return (
+            <span style={{ fontWeight: 'bold', color: '#e03b3b', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+              <CloseCircleOutlined style={{ fontSize: '15px' }} />
+              {estado}
+            </span>
+          );
         }
         return (
-          <span style={{ fontWeight: 'bold', color, display: 'inline-flex', alignItems: 'center' }}>
-            <span className={dotClass} />
+          <span style={{ fontWeight: 'bold', color: '#f0ad4e', display: 'inline-flex', alignItems: 'center' }}>
+            <span className="dot-pulse-orange" />
             {estado}
           </span>
         );
@@ -73,25 +97,44 @@ const OrdersTable = ({ orders, handleOpenCreateModal }) => {
 
   const styleBlock = (
     <style>{`
-      .dot-pulse-orange, .dot-pulse-blue, .dot-static-green {
+      .ant-segmented {
+        background-color: #f0f2ff !important;
+        border: 1px solid #dcdffb !important;
+      }
+      .ant-segmented-item-selected {
+        background-color: #5b5ce1 !important;
+        color: #ffffff !important;
+      }
+      .ant-segmented-item-selected .ant-segmented-item-label {
+        color: #ffffff !important;
+      }
+      .ant-segmented-item:hover {
+        color: #5b5ce1 !important;
+      }
+      .dot-pulse-orange {
         width: 8px;
         height: 8px;
         border-radius: 50%;
         margin-right: 8px;
         display: inline-block;
-      }
-      .dot-pulse-orange {
         background-color: #f0ad4e;
         box-shadow: 0 0 0 0 rgba(240, 173, 78, 0.7);
         animation: pulse-orange 1.5s infinite;
       }
-      .dot-pulse-blue {
-        background-color: #5b5ce1;
-        box-shadow: 0 0 0 0 rgba(91, 92, 225, 0.7);
-        animation: pulse-blue 1.5s infinite;
+      .car-animation-wrapper {
+        display: inline-block;
+        animation: car-engine-idle 1.5s infinite ease-in-out;
       }
-      .dot-static-green {
-        background-color: #5cb85c;
+      @keyframes car-engine-idle {
+        0% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-1.5px);
+        }
+        100% {
+          transform: translateY(0);
+        }
       }
       @keyframes pulse-orange {
         0% {
@@ -105,20 +148,6 @@ const OrdersTable = ({ orders, handleOpenCreateModal }) => {
         100% {
           transform: scale(0.95);
           box-shadow: 0 0 0 0 rgba(240, 173, 78, 0);
-        }
-      }
-      @keyframes pulse-blue {
-        0% {
-          transform: scale(0.95);
-          box-shadow: 0 0 0 0 rgba(91, 92, 225, 0.7);
-        }
-        70% {
-          transform: scale(1);
-          box-shadow: 0 0 0 6px rgba(91, 92, 225, 0);
-        }
-        100% {
-          transform: scale(0.95);
-          box-shadow: 0 0 0 0 rgba(91, 92, 225, 0);
         }
       }
       .ant-table-pagination.ant-pagination {
@@ -163,8 +192,16 @@ const OrdersTable = ({ orders, handleOpenCreateModal }) => {
   return (
     <>
       {styleBlock}
+      <div style={{ marginBottom: '24px', display: 'flex', justifyContent: 'flex-start' }}>
+        <Segmented
+          options={['Todos', 'Pendente', 'Em Trânsito', 'Entregue', 'Rejeitada']}
+          value={selectedStatus}
+          onChange={setSelectedStatus}
+          style={{ fontWeight: '600', padding: '4px' }}
+        />
+      </div>
       <Table
-        dataSource={orders}
+        dataSource={filteredOrders}
         columns={columns}
         rowKey="id"
         pagination={{
@@ -176,4 +213,4 @@ const OrdersTable = ({ orders, handleOpenCreateModal }) => {
   );
 };
 
-export default OrdersTable;
+export default OrdersTableCliente;

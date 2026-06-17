@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { Layout, Button, Spin, notification, Form } from 'antd';
-import { PlusOutlined, LogoutOutlined } from '@ant-design/icons';
+import { Layout, Button, Spin, notification, Form, Menu } from 'antd';
+import { PlusOutlined, LogoutOutlined, OrderedListOutlined, UserSwitchOutlined } from '@ant-design/icons';
 import _service from '@netuno/service-client';
 
-import OrdersTable from '../../components/OrdersTableComponent';
+import OrdersTableCliente from '../../components/OrdersTableClienteComponent';
+import OrdersTableOperador from '../../components/OrdersTableOperadorComponent';
 import CreateOrderModal from '../../components/CreateOrderModalComponent';
 import MapModal from '../../components/MapModalComponent';
 import useMapLogic from '../../common/useMapLogic';
@@ -12,7 +13,7 @@ import usePostalCode from '../../common/usePostalCode';
 import useConfirmMap from '../../common/useConfirmMap';
 import useCreateOrder from '../../common/useCreateOrder';
 
-const { Header, Content } = Layout;
+const { Header, Content, Sider } = Layout;
 
 const HomeContainer = () => {
   const { orders, loading, loadOrders, setLoading } = useLoadOrders();
@@ -99,11 +100,7 @@ const HomeContainer = () => {
         if (json.result === true) {
           setUserName(json.primeiro_nome);
           setUserGroup(json.group || 'cliente');
-          if (json.group !== 'operador') {
-            loadOrders(token);
-          } else {
-            setLoading(false);
-          }
+          loadOrders(token);
         } else {
           logout();
         }
@@ -118,7 +115,40 @@ const HomeContainer = () => {
     });
   }, []);
 
-
+  const handleStatusChange = (orderUid, newStatus) => {
+    const token = localStorage.getItem('user_session_token');
+    _service({
+      url: '/order/status',
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + token
+      },
+      data: {
+        uid: orderUid,
+        estado: newStatus
+      },
+      success: ({ json }) => {
+        if (json.result === true) {
+          notification.success({
+            message: 'Sucesso',
+            description: 'Estado da encomenda atualizado para ' + newStatus + '.'
+          });
+          loadOrders(token);
+        } else {
+          notification.error({
+            message: 'Erro',
+            description: json.error || 'Não foi possível atualizar o estado.'
+          });
+        }
+      },
+      fail: () => {
+        notification.error({
+          message: 'Erro de Rede',
+          description: 'Falha ao comunicar com o servidor.'
+        });
+      }
+    });
+  };
 
   const logout = () => {
     localStorage.removeItem('user_session_token');
@@ -129,7 +159,6 @@ const HomeContainer = () => {
     setIsModalOpen(true);
   };
 
-
   const handleCloseModal = () => {
     form.resetFields();
     setPostalCodeStatus('none');
@@ -139,8 +168,6 @@ const HomeContainer = () => {
     resetCreateOrderFlow();
     setIsModalOpen(false);
   };
-
-
 
   if (loading) {
     return (
@@ -161,7 +188,7 @@ const HomeContainer = () => {
         padding: '0 24px',
         position: 'sticky',
         top: 0,
-        zIndex: 1
+        zIndex: 10
       }}>
         <div style={{
           fontSize: '20px',
@@ -199,21 +226,39 @@ const HomeContainer = () => {
         </div>
       </Header>
 
-      <Content style={{ padding: '40px 24px', maxWidth: '1000px', width: '100%', margin: '0 auto' }}>
-        {userGroup === 'operador' ? (
-          <div style={{ marginBottom: '24px' }}>
-            <h2 style={{ margin: 0, color: '#333333', fontSize: '28px', fontWeight: '600' }}>
-              Olá, {userName}!
-            </h2>
-            <p style={{ color: '#666666', margin: '4px 0 0 0' }}>Página de operador</p>
-          </div>
-        ) : (
-          <>
+      {userGroup === 'operador' ? (
+        <Layout>
+          <Sider 
+            width={220} 
+            theme="light" 
+            style={{ 
+              boxShadow: '2px 0 8px rgba(0,0,0,0.02)',
+              borderRight: '1px solid #f0f0f0'
+            }}
+          >
+            <Menu
+              mode="inline"
+              selectedKeys={['pedidos']}
+              onClick={(e) => {
+                if (e.key === 'estafetas') {
+                  window.location.href = '/public/estafetas.html';
+                }
+              }}
+              style={{ height: '100%', paddingTop: '16px', borderRight: 0 }}
+              items={[
+                { key: 'pedidos', icon: <OrderedListOutlined />, label: 'Pedidos' },
+                { key: 'estafetas', icon: <UserSwitchOutlined />, label: 'Estafetas' }
+              ]}
+            />
+          </Sider>
+          <Content style={{ padding: '40px 24px', maxWidth: '1200px', width: '100%', margin: '0 auto' }}>
             <div style={{ marginBottom: '24px' }}>
               <h2 style={{ margin: 0, color: '#333333', fontSize: '28px', fontWeight: '600' }}>
                 Olá, {userName}!
               </h2>
-              <p style={{ color: '#666666', margin: '4px 0 0 0' }}>Gere e consulta as tuas encomendas em tempo real.</p>
+              <p style={{ color: '#666666', margin: '4px 0 0 0' }}>
+                Consola de Operador - Faça a gestão das encomendas pendentes do sistema.
+              </p>
             </div>
 
             <div style={{
@@ -222,11 +267,29 @@ const HomeContainer = () => {
               borderRadius: '8px',
               boxShadow: '0 4px 12px rgba(0,0,0,0.04)'
             }}>
-              <OrdersTable orders={orders} handleOpenCreateModal={handleOpenModal} />
+              <OrdersTableOperador orders={orders} onStatusChange={handleStatusChange} />
             </div>
-          </>
-        )}
-      </Content>
+          </Content>
+        </Layout>
+      ) : (
+        <Content style={{ padding: '40px 24px', maxWidth: '1000px', width: '100%', margin: '0 auto' }}>
+          <div style={{ marginBottom: '24px' }}>
+            <h2 style={{ margin: 0, color: '#333333', fontSize: '28px', fontWeight: '600' }}>
+              Olá, {userName}!
+            </h2>
+            <p style={{ color: '#666666', margin: '4px 0 0 0' }}>Gere e consulta as tuas encomendas em tempo real.</p>
+          </div>
+
+          <div style={{
+            background: '#ffffff',
+            padding: '24px',
+            borderRadius: '8px',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.04)'
+          }}>
+            <OrdersTableCliente orders={orders} handleOpenCreateModal={handleOpenModal} />
+          </div>
+        </Content>
+      )}
 
       <CreateOrderModal
         open={isModalOpen}

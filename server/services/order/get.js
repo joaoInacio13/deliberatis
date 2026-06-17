@@ -62,29 +62,58 @@ try {
     _header.status(400);
     _out.json(_val.map().set("result", false).set("error", "Código único da encomenda em falta."));
   } else {
-    const userQuery = _db.query(
+    let userQuery = _db.query(
       "SELECT id FROM cliente WHERE user_id = ? AND active = true",
       userId
     );
+    let isOperator = false;
+    let profileId = null;
 
-    if (userQuery.size() === 0) {
-      _header.status(404);
-      _out.json(_val.map().set("result", false).set("error", "Cliente não encontrado."));
+    if (userQuery.size() > 0) {
+      profileId = userQuery.get(0).getInt("id");
     } else {
-      const profileId = userQuery.get(0).getInt("id");
-
-      const orderQuery = _db.query(
-        "SELECT e.id, e.uid, e.lastchange_time, e.descricao, e.preco, e.porta, e.andar, e.telefone, e.observacoes, " +
-        "e.latitude, e.longitude, " +
-        "s.nome AS estado, p.nome AS pagamento, cp.codigo AS codigo_postal, cp.rua, c.nome AS cidade " +
-        "FROM encomenda e " +
-        "LEFT JOIN estado_encomenda s ON e.estado_id = s.id " +
-        "LEFT JOIN pagamento p ON e.pagamento_id = p.id " +
-        "LEFT JOIN codigo_postal cp ON e.codigo_postal_id = cp.id " +
-        "LEFT JOIN cidade c ON cp.cidade_id = c.id " +
-        "WHERE e.cliente_id = ? AND e.uid = ? AND e.active = true",
-        profileId, uid
+      userQuery = _db.query(
+        "SELECT id FROM operador WHERE user_id = ? AND active = true",
+        userId
       );
+      if (userQuery.size() > 0) {
+        profileId = userQuery.get(0).getInt("id");
+        isOperator = true;
+      }
+    }
+
+    if (profileId === null) {
+      _header.status(404);
+      _out.json(_val.map().set("result", false).set("error", "Utilizador não encontrado."));
+    } else {
+      let orderQuery;
+      if (isOperator) {
+        orderQuery = _db.query(
+          "SELECT e.id, e.uid, e.lastchange_time, e.descricao, e.preco, e.porta, e.andar, e.telefone, e.observacoes, " +
+          "e.latitude, e.longitude, " +
+          "s.nome AS estado, p.nome AS pagamento, cp.codigo AS codigo_postal, cp.rua, c.nome AS cidade " +
+          "FROM encomenda e " +
+          "LEFT JOIN estado_encomenda s ON e.estado_id = s.id " +
+          "LEFT JOIN pagamento p ON e.pagamento_id = p.id " +
+          "LEFT JOIN codigo_postal cp ON e.codigo_postal_id = cp.id " +
+          "LEFT JOIN cidade c ON cp.cidade_id = c.id " +
+          "WHERE e.uid = ? AND e.active = true",
+          uid
+        );
+      } else {
+        orderQuery = _db.query(
+          "SELECT e.id, e.uid, e.lastchange_time, e.descricao, e.preco, e.porta, e.andar, e.telefone, e.observacoes, " +
+          "e.latitude, e.longitude, " +
+          "s.nome AS estado, p.nome AS pagamento, cp.codigo AS codigo_postal, cp.rua, c.nome AS cidade " +
+          "FROM encomenda e " +
+          "LEFT JOIN estado_encomenda s ON e.estado_id = s.id " +
+          "LEFT JOIN pagamento p ON e.pagamento_id = p.id " +
+          "LEFT JOIN codigo_postal cp ON e.codigo_postal_id = cp.id " +
+          "LEFT JOIN cidade c ON cp.cidade_id = c.id " +
+          "WHERE e.cliente_id = ? AND e.uid = ? AND e.active = true",
+          profileId, uid
+        );
+      }
 
       if (orderQuery.size() === 0) {
         _header.status(404);

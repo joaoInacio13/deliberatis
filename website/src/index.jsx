@@ -4,6 +4,7 @@ import _service from '@netuno/service-client';
 import AuthContainer from "./pages/Auth";
 import HomeContainer from "./pages/Home";
 import OrderDetailsContainer from "./pages/OrderDetails";
+import EstafetasContainer from "./pages/Estafetas";
 
 import { ConfigProvider } from "antd";
 import antLocale_ptPT from "antd/lib/locale/pt_PT";
@@ -56,6 +57,27 @@ if (homeContainer) {
       locale={antLocale_ptPT}
     >
       <HomeContainer />
+    </ConfigProvider>
+  );
+}
+
+// Deteta se o elemento de base dos Estafetas está presente no DOM (ex: na página estafetas.html)
+const estafetasDiv = document.getElementById("app-estafetas");
+const estafetasContainer = estafetasDiv ? createRoot(estafetasDiv) : false;
+
+if (estafetasContainer) {
+  estafetasContainer.render(
+    <ConfigProvider
+      theme={{
+        token: {
+          colorPrimary: '#5b5ce1',
+          colorLink: '#5b5ce1',
+          borderRadius: 5,
+        }
+      }}
+      locale={antLocale_ptPT}
+    >
+      <EstafetasContainer />
     </ConfigProvider>
   );
 }
