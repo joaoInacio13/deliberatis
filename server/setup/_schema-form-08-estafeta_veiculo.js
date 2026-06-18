@@ -1,0 +1,95 @@
+/**
+  *
+  *  CODE GENERATED AUTOMATICALLY
+  *
+  *  THIS FILE SHOULD NOT BE EDITED BY HAND
+  *
+  */
+
+import {_val, _form} from "@netuno/server-types";
+
+_form.createIfNotExists(
+	_val.map()
+		.set("big", false)
+		.set("control_active", true)
+		.set("control_group", false)
+		.set("control_user", false)
+		.set("description", "")
+		.set("export_id", false)
+		.set("export_json", true)
+		.set("export_lastchange", false)
+		.set("export_uid", true)
+		.set("export_xls", true)
+		.set("export_xml", true)
+		.set("firebase", "")
+		.set("name", "estafeta_veiculo")
+		.set("parent_uid", "3a8e3ffe-aa0f-4bcc-b30d-8a99b1727896")
+		.set("reorder", 0)
+		.set("report", false)
+		.set("report_behaviour", 0)
+		.set("show_id", true)
+		.set("title", "Ve\u00EDculo")
+		.set("uid", "c2d86eb3-0ef7-40f2-ba77-e82956a08021")
+);
+_form.createComponentIfNotExists(
+	"c2d86eb3-0ef7-40f2-ba77-e82956a08021",
+	_val.map()
+		.set("colspan", 0)
+		.set("description", "")
+		.set("firebase", "")
+		.set("group_id", 0)
+		.set("height", 0)
+		.set("mandatory", true)
+		.set("max", 0)
+		.set("min", 0)
+		.set("name", "nome")
+		.set("properties", "{\"MASK\":{\"default\":\"\",\"type\":\"STRING\",\"value\":\"\"},\"MASK_REVERSE\":{\"default\":\"false\",\"type\":\"BOOLEAN\",\"value\":\"false\"},\"MASK_SELECTONFOCUS\":{\"default\":\"false\",\"type\":\"BOOLEAN\",\"value\":\"false\"}}")
+		.set("rowspan", 0)
+		.set("tdheight", 0)
+		.set("tdwidth", 0)
+		.set("title", "Nome")
+		.set("type", "text")
+		.set("uid", "8534932f-d16c-4649-9e28-872635298a71")
+		.set("unique", false)
+		.set("user_id", 0)
+		.set("whenedit", true)
+		.set("whenexport", true)
+		.set("whenfilter", true)
+		.set("whennew", true)
+		.set("whenresult", true)
+		.set("whenview", true)
+		.set("width", 0)
+		.set("x", 1)
+		.set("y", 1)
+);
+_form.createComponentIfNotExists(
+	"c2d86eb3-0ef7-40f2-ba77-e82956a08021",
+	_val.map()
+		.set("colspan", 0)
+		.set("description", "")
+		.set("firebase", "")
+		.set("group_id", 0)
+		.set("height", 0)
+		.set("mandatory", false)
+		.set("max", 0)
+		.set("min", 0)
+		.set("name", "velocidade")
+		.set("properties", "{\"LARGE_NUMBERS\":{\"default\":\"false\",\"type\":\"BOOLEAN\",\"value\":\"false\"},\"MASK\":{\"default\":\"#.##0\",\"type\":\"STRING\",\"value\":\"#.##0\"},\"MASK_REVERSE\":{\"default\":\"true\",\"type\":\"BOOLEAN\",\"value\":\"true\"},\"MASK_SELECTONFOCUS\":{\"default\":\"false\",\"type\":\"BOOLEAN\",\"value\":\"false\"},\"SIGN\":{\"default\":\"false\",\"type\":\"BOOLEAN\",\"value\":\"false\"}}")
+		.set("rowspan", 0)
+		.set("tdheight", 0)
+		.set("tdwidth", 0)
+		.set("title", "Velocidade")
+		.set("type", "textnum")
+		.set("uid", "71684800-f2f0-4659-a994-722e9e6d02a6")
+		.set("unique", false)
+		.set("user_id", 0)
+		.set("whenedit", true)
+		.set("whenexport", true)
+		.set("whenfilter", true)
+		.set("whennew", true)
+		.set("whenresult", true)
+		.set("whenview", true)
+		.set("width", 0)
+		.set("x", 1)
+		.set("y", 2)
+);

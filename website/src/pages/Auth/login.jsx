@@ -54,7 +54,8 @@ const Login = ({ onNavigate, onLoginFake }) => {
   return (
     <Card style={{ width: 400, borderRadius: 8, boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}>
       <div style={{ textAlign: 'center', marginBottom: 24 }}>
-        <Title level={3} style={{ margin: 0, color: '#5b5ce1' }}>Deliberatis</Title>
+        <img src="/public/images/logo_deliberatis.png" alt="Deliberatis Logo" style={{ maxHeight: '48px', width: 'auto', marginBottom: '8px' }} />
+        <br />
         <Text type="secondary">Inicia sessão na tua conta</Text>
       </div>
 

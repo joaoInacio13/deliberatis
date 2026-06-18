@@ -98,8 +98,8 @@ try {
             .set("error", "Não foi possível validar o código postal indicado.")
           );
         } else {
-          // Procura o ID do estado "Pendente" na tabela estado_encomenda
-          const estadoQuery = _db.query("SELECT id FROM estado_encomenda WHERE nome = 'Pendente'");
+          // Procura o ID do estado "Pendente" na tabela encomenda_estado
+          const estadoQuery = _db.query("SELECT id FROM encomenda_estado WHERE nome = 'Pendente'");
           let estadoId = 1;
           if (estadoQuery.size() > 0) {
             estadoId = estadoQuery.get(0).getInt("id");

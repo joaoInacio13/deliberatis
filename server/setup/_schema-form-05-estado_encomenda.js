@@ -23,11 +23,12 @@ _form.createIfNotExists(
 		.set("export_xml", true)
 		.set("firebase", "")
 		.set("name", "estado_encomenda")
+		.set("parent_uid", "cb45ff07-780d-40fa-968b-06cd6ef6c387")
 		.set("reorder", 0)
 		.set("report", false)
 		.set("report_behaviour", 0)
 		.set("show_id", true)
-		.set("title", "EstadoEncomenda")
+		.set("title", "Estado")
 		.set("uid", "62849d7a-ee33-4153-8046-0eab633a2f85")
 );
 _form.createComponentIfNotExists(

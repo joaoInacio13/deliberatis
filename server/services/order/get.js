@@ -93,7 +93,7 @@ try {
           "e.latitude, e.longitude, " +
           "s.nome AS estado, p.nome AS pagamento, cp.codigo AS codigo_postal, cp.rua, c.nome AS cidade " +
           "FROM encomenda e " +
-          "LEFT JOIN estado_encomenda s ON e.estado_id = s.id " +
+          "LEFT JOIN encomenda_estado s ON e.estado_id = s.id " +
           "LEFT JOIN pagamento p ON e.pagamento_id = p.id " +
           "LEFT JOIN codigo_postal cp ON e.codigo_postal_id = cp.id " +
           "LEFT JOIN cidade c ON cp.cidade_id = c.id " +
@@ -106,7 +106,7 @@ try {
           "e.latitude, e.longitude, " +
           "s.nome AS estado, p.nome AS pagamento, cp.codigo AS codigo_postal, cp.rua, c.nome AS cidade " +
           "FROM encomenda e " +
-          "LEFT JOIN estado_encomenda s ON e.estado_id = s.id " +
+          "LEFT JOIN encomenda_estado s ON e.estado_id = s.id " +
           "LEFT JOIN pagamento p ON e.pagamento_id = p.id " +
           "LEFT JOIN codigo_postal cp ON e.codigo_postal_id = cp.id " +
           "LEFT JOIN cidade c ON cp.cidade_id = c.id " +

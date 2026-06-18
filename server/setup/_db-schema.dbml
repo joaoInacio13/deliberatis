@@ -29,8 +29,8 @@ Table encomenda {
   codigo_postal_id int [not null, ref: > codigo_postal.id, note: 'codigo_postal']
   descricao text [not null, note: 'descricao']
   estado_id int [not null, ref: > estado_encomenda.id, note: 'estado']
-  latitude real [not null, note: 'Latitude']
-  longitude real [not null, note: 'Longitude']
+  latitude numeric(30, 14) [not null, note: 'Latitude']
+  longitude numeric(30, 14) [not null, note: 'Longitude']
   observacoes text [note: 'observacoes']
   pagamento_id int [not null, ref: > pagamento.id, note: 'pagamento']
   porta varchar(250) [not null, note: 'porta']
@@ -42,7 +42,31 @@ Table encomenda {
 Table estado_encomenda {
   id int [pk, increment]
   nome varchar(250) [not null, unique, note: 'Nome']
-  Note: 'EstadoEncomenda'
+  Note: 'Estado'
+}
+
+Table estafeta {
+  id int [pk, increment]
+  data_nascimento date [not null, note: 'DataNascimento']
+  latitude numeric(30, 14) [note: 'Latitude']
+  longitude numeric(30, 14) [note: 'Longitude']
+  matricula varchar(250) [not null, unique, note: 'Matricula']
+  nome varchar(250) [not null, note: 'Nome']
+  telefone varchar(250) [not null, note: 'Telefone']
+  Note: 'Estafeta'
+}
+
+Table estafeta_estado {
+  id int [pk, increment]
+  nome varchar(250) [not null, note: 'Nome']
+  Note: 'Estado'
+}
+
+Table estafeta_veiculo {
+  id int [pk, increment]
+  nome varchar(250) [not null, note: 'Nome']
+  velocidade int [note: 'Velocidade']
+  Note: 'Veículo'
 }
 
 Table operador {

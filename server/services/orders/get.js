@@ -36,7 +36,7 @@ try {
         "s.nome AS estado, p.nome AS pagamento, cp.codigo AS codigo_postal, cp.rua, c.nome AS cidade, " +
         "cl.primeiro_nome AS cliente_primeiro_nome, cl.ultimo_nome AS cliente_ultimo_nome, cl.email AS cliente_email " +
         "FROM encomenda e " +
-        "LEFT JOIN estado_encomenda s ON e.estado_id = s.id " +
+        "LEFT JOIN encomenda_estado s ON e.estado_id = s.id " +
         "LEFT JOIN pagamento p ON e.pagamento_id = p.id " +
         "LEFT JOIN codigo_postal cp ON e.codigo_postal_id = cp.id " +
         "LEFT JOIN cidade c ON cp.cidade_id = c.id " +
@@ -50,7 +50,7 @@ try {
         "SELECT e.id, e.uid, e.lastchange_time, e.descricao, e.preco, e.porta, e.andar, e.telefone, e.observacoes, " +
         "s.nome AS estado, p.nome AS pagamento, cp.codigo AS codigo_postal, cp.rua, c.nome AS cidade " +
         "FROM encomenda e " +
-        "LEFT JOIN estado_encomenda s ON e.estado_id = s.id " +
+        "LEFT JOIN encomenda_estado s ON e.estado_id = s.id " +
         "LEFT JOIN pagamento p ON e.pagamento_id = p.id " +
         "LEFT JOIN codigo_postal cp ON e.codigo_postal_id = cp.id " +
         "LEFT JOIN cidade c ON cp.cidade_id = c.id " +

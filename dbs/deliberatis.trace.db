@@ -1936,3 +1936,9 @@ select * from `` where id = 1 [42102-240]
 2026-06-09 14:39:25.606153+01:00 jdbc[13]: exception
 org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "codigopostal" not found; SQL statement:
 select * from codigopostal; [42102-240]
+2026-06-18 12:26:54.701286+01:00 jdbc[26]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "estado_encomenda" not found; SQL statement:
+SELECT e.id, e.uid, e.lastchange_time, e.descricao, e.preco, e.porta, e.andar, e.telefone, e.observacoes, s.nome AS estado, p.nome AS pagamento, cp.codigo AS codigo_postal, cp.rua, c.nome AS cidade FROM encomenda e LEFT JOIN estado_encomenda s ON e.estado_id = s.id LEFT JOIN pagamento p ON e.pagamento_id = p.id LEFT JOIN codigo_postal cp ON e.codigo_postal_id = cp.id LEFT JOIN cidade c ON cp.cidade_id = c.id WHERE e.cliente_id = ? AND e.active = true ORDER BY e.lastchange_time DESC [42102-240]
+2026-06-18 12:27:04.043663+01:00 jdbc[26]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "estado_encomenda" not found; SQL statement:
+SELECT e.id, e.uid, e.lastchange_time, e.descricao, e.preco, e.porta, e.andar, e.telefone, e.observacoes, s.nome AS estado, p.nome AS pagamento, cp.codigo AS codigo_postal, cp.rua, c.nome AS cidade FROM encomenda e LEFT JOIN estado_encomenda s ON e.estado_id = s.id LEFT JOIN pagamento p ON e.pagamento_id = p.id LEFT JOIN codigo_postal cp ON e.codigo_postal_id = cp.id LEFT JOIN cidade c ON cp.cidade_id = c.id WHERE e.cliente_id = ? AND e.active = true ORDER BY e.lastchange_time DESC [42102-240]

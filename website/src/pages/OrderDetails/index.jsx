@@ -1,11 +1,18 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Layout, Button, Spin, Row, Col, notification } from 'antd';
+import { Layout, Button, Spin, Row, Col, notification, Form } from 'antd';
 import { ArrowLeftOutlined, EditOutlined } from '@ant-design/icons';
 import _service from '@netuno/service-client';
 
 import OrderTimeline from '../../components/OrderDetailsComponent/OrderTimeline';
 import OrderDetailsInfo from '../../components/OrderDetailsComponent/OrderDetailsInfo';
 import OrderDetailsMap from '../../components/OrderDetailsComponent/OrderDetailsMap';
+import EditOrderModal from '../../components/EditOrderModalComponent';
+import MapModal from '../../components/MapModalComponent';
+
+import usePostalCode from '../../common/usePostalCode';
+import useMapLogic from '../../common/useMapLogic';
+import useConfirmMap from '../../common/useConfirmMap';
+import useUpdateOrder from '../../common/useUpdateOrder';
 
 const { Header, Content } = Layout;
 
@@ -28,6 +35,71 @@ const OrderDetailsContainer = () => {
   const [userName, setUserName] = useState('');
   const [order, setOrder] = useState(null);
   const [uid, setUid] = useState('');
+
+  const [form] = Form.useForm();
+  const [isMapModalOpen, setIsMapModalOpen] = useState(false);
+
+  const {
+    loadingPostalCode,
+    setLoadingPostalCode,
+    postalCodeStatus,
+    setPostalCodeStatus,
+    postalCodeErrorMsg,
+    setPostalCodeErrorMsg,
+    handlePostalCodeChange
+  } = usePostalCode(form);
+
+  const {
+    isEditModalOpen,
+    setIsEditModalOpen,
+    hasConfirmedPin,
+    setHasConfirmedPin,
+    confirmedCoords,
+    setConfirmedCoords,
+    submitting,
+    handleOpenEditModal,
+    handleUpdateOrder
+  } = useUpdateOrder({
+    order,
+    form,
+    uid,
+    loadOrderDetails: (token, orderUid) => loadOrderDetails(token, orderUid),
+    setPostalCodeStatus,
+    setPostalCodeErrorMsg
+  });
+
+  const {
+    mapRef: editMapRef,
+    mapInstanceRef: editMapInstanceRef,
+    markerInstanceRef: editMarkerInstanceRef,
+    reverseGeocode
+  } = useMapLogic({
+    form,
+    isMapModalOpen,
+    setPostalCodeStatus,
+    setPostalCodeErrorMsg,
+    setLoadingPostalCode,
+    setHasConfirmedPin,
+    confirmedCoords
+  });
+
+  const {
+    searchingMap,
+    searchQuery,
+    setSearchQuery,
+    handleMapSearch,
+    handleConfirmLocation,
+    handleOpenMapModal,
+    locateAddressOnMap
+  } = useConfirmMap({
+    form,
+    setIsMapModalOpen,
+    setHasConfirmedPin,
+    markerInstanceRef: editMarkerInstanceRef,
+    mapInstanceRef: editMapInstanceRef,
+    reverseGeocode,
+    setConfirmedCoords
+  });
 
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
@@ -84,8 +156,21 @@ const OrderDetailsContainer = () => {
   }, []);
 
   useEffect(() => {
-    if (order && order.latitude && order.longitude && mapRef.current && !mapInstanceRef.current) {
-      initMap(order.latitude, order.longitude);
+    if (order && order.latitude && order.longitude) {
+      if (mapRef.current) {
+        if (!mapInstanceRef.current) {
+          initMap(order.latitude, order.longitude);
+        } else {
+          const L = window.L;
+          if (L) {
+            const latlng = L.latLng(order.latitude, order.longitude);
+            if (markerInstanceRef.current) {
+              markerInstanceRef.current.setLatLng(latlng);
+            }
+            mapInstanceRef.current.setView(latlng, 15);
+          }
+        }
+      }
     }
   }, [order]);
 
@@ -183,14 +268,8 @@ const OrderDetailsContainer = () => {
         top: 0,
         zIndex: 10
       }}>
-        <div style={{
-          fontSize: '22px',
-          fontWeight: '800',
-          color: '#5b5ce1',
-          letterSpacing: '1px',
-          fontFamily: "'Outfit', sans-serif"
-        }}>
-          DELIBERATIS
+        <div style={{ display: 'flex', alignItems: 'center', height: '100%' }}>
+          <img src="/public/images/logo_deliberatis.png" alt="Deliberatis Logo" style={{ maxHeight: '38px', width: 'auto' }} />
         </div>
         <div style={{ color: '#666', fontWeight: '500', fontSize: '16px' }}>
           Olá, {userName}
@@ -220,6 +299,7 @@ const OrderDetailsContainer = () => {
               size="large"
               icon={<EditOutlined />}
               disabled={order.estado !== 'Pendente'}
+              onClick={handleOpenEditModal}
               style={{ borderRadius: '6px', position: 'absolute', right: 0, backgroundColor: order.estado === 'Pendente' ? '#5b5ce1' : undefined, borderColor: order.estado === 'Pendente' ? '#5b5ce1' : undefined }}
             >
               Editar
@@ -245,6 +325,30 @@ const OrderDetailsContainer = () => {
           </div>
         )}
       </Content>
+
+      <EditOrderModal
+        open={isEditModalOpen}
+        onCancel={() => setIsEditModalOpen(false)}
+        form={form}
+        submitting={submitting}
+        onFinish={handleUpdateOrder}
+        openMapModal={() => handleOpenMapModal(hasConfirmedPin)}
+        postalCodeStatus={postalCodeStatus}
+        postalCodeErrorMsg={postalCodeErrorMsg}
+        loadingPostalCode={loadingPostalCode}
+        handlePostalCodeChange={handlePostalCodeChange}
+      />
+
+      <MapModal
+        open={isMapModalOpen}
+        onCancel={() => setIsMapModalOpen(false)}
+        onConfirmLocation={() => handleConfirmLocation()}
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        searchingMap={searchingMap}
+        handleMapSearch={handleMapSearch}
+        mapRef={editMapRef}
+      />
     </Layout>
   );
 };

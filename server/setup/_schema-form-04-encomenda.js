@@ -197,7 +197,7 @@ _form.createComponentIfNotExists(
 		.set("max", 0)
 		.set("min", 0)
 		.set("name", "latitude")
-		.set("properties", "{\"LARGE_NUMBERS\":{\"default\":\"false\",\"type\":\"BOOLEAN\",\"value\":\"false\"},\"MASK\":{\"default\":\"#.##0,00\",\"type\":\"STRING\",\"value\":\"\"},\"MASK_REVERSE\":{\"default\":\"true\",\"type\":\"BOOLEAN\",\"value\":\"false\"},\"MASK_SELECTONFOCUS\":{\"default\":\"false\",\"type\":\"BOOLEAN\",\"value\":\"false\"},\"SIGN\":{\"default\":\"false\",\"type\":\"BOOLEAN\",\"value\":\"true\"}}")
+		.set("properties", "{\"LARGE_NUMBERS\":{\"default\":\"false\",\"type\":\"BOOLEAN\",\"value\":\"true\"},\"MASK\":{\"default\":\"#.##0,00\",\"type\":\"STRING\",\"value\":\"\"},\"MASK_REVERSE\":{\"default\":\"true\",\"type\":\"BOOLEAN\",\"value\":\"false\"},\"MASK_SELECTONFOCUS\":{\"default\":\"false\",\"type\":\"BOOLEAN\",\"value\":\"false\"},\"SIGN\":{\"default\":\"false\",\"type\":\"BOOLEAN\",\"value\":\"true\"}}")
 		.set("rowspan", 0)
 		.set("tdheight", 0)
 		.set("tdwidth", 0)
@@ -228,7 +228,7 @@ _form.createComponentIfNotExists(
 		.set("max", 0)
 		.set("min", 0)
 		.set("name", "longitude")
-		.set("properties", "{\"LARGE_NUMBERS\":{\"default\":\"false\",\"type\":\"BOOLEAN\",\"value\":\"false\"},\"MASK\":{\"default\":\"#.##0,00\",\"type\":\"STRING\",\"value\":\"\"},\"MASK_REVERSE\":{\"default\":\"true\",\"type\":\"BOOLEAN\",\"value\":\"false\"},\"MASK_SELECTONFOCUS\":{\"default\":\"false\",\"type\":\"BOOLEAN\",\"value\":\"false\"},\"SIGN\":{\"default\":\"false\",\"type\":\"BOOLEAN\",\"value\":\"true\"}}")
+		.set("properties", "{\"LARGE_NUMBERS\":{\"default\":\"false\",\"type\":\"BOOLEAN\",\"value\":\"true\"},\"MASK\":{\"default\":\"#.##0,00\",\"type\":\"STRING\",\"value\":\"\"},\"MASK_REVERSE\":{\"default\":\"true\",\"type\":\"BOOLEAN\",\"value\":\"false\"},\"MASK_SELECTONFOCUS\":{\"default\":\"false\",\"type\":\"BOOLEAN\",\"value\":\"false\"},\"SIGN\":{\"default\":\"false\",\"type\":\"BOOLEAN\",\"value\":\"true\"}}")
 		.set("rowspan", 0)
 		.set("tdheight", 0)
 		.set("tdwidth", 0)
@@ -244,8 +244,8 @@ _form.createComponentIfNotExists(
 		.set("whenresult", true)
 		.set("whenview", true)
 		.set("width", 0)
-		.set("x", 1)
-		.set("y", 13)
+		.set("x", 2)
+		.set("y", 12)
 );
 _form.createComponentIfNotExists(
 	"cb45ff07-780d-40fa-968b-06cd6ef6c387",

@@ -33,7 +33,7 @@ try {
 
         // 3. Procura o ID do estado correspondente
         const statusQuery = _db.query(
-          "SELECT id FROM estado_encomenda WHERE nome = ? AND active = true",
+          "SELECT id FROM encomenda_estado WHERE nome = ? AND active = true",
           estado
         );
 

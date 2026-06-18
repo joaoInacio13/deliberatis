@@ -166,14 +166,8 @@ const EstafetasContainer = () => {
         top: 0,
         zIndex: 10
       }}>
-        <div style={{
-          fontSize: '20px',
-          fontWeight: '800',
-          color: '#5b5ce1',
-          letterSpacing: '1px',
-          fontFamily: "'Outfit', sans-serif"
-        }}>
-          DELIBERATIS
+        <div style={{ display: 'flex', alignItems: 'center', height: '100%' }}>
+          <img src="/public/images/logo_deliberatis.png" alt="Deliberatis Logo" style={{ maxHeight: '38px', width: 'auto' }} />
         </div>
 
         <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
