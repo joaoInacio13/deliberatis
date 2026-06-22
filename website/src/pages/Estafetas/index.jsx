@@ -1,42 +1,49 @@
 import React, { useEffect, useState } from 'react';
-import { Layout, Menu, Button, Spin, notification, Form, Input, Card, Row, Col, Select, Tag, Space, Table } from 'antd';
+import { Layout, Menu, Button, Spin, notification, Form, Input, Card, Row, Col, Select, Tag, Space, Table, DatePicker } from 'antd';
 import { LogoutOutlined, OrderedListOutlined, UserSwitchOutlined, PlusOutlined, UserOutlined, PhoneOutlined, CarOutlined } from '@ant-design/icons';
 import _service from '@netuno/service-client';
+import dayjs from 'dayjs';
 
 const { Header, Content, Sider } = Layout;
-
-const mockCouriersData = [
-  {
-    id: 1,
-    nome: 'Carlos Santos',
-    telefone: '912345678',
-    veiculo: 'Mota',
-    matricula: 'AA-00-XX',
-    estado: 'Disponível'
-  },
-  {
-    id: 2,
-    nome: 'Mariana Costa',
-    telefone: '934567890',
-    veiculo: 'Bicicleta',
-    matricula: 'N/A',
-    estado: 'Em Entrega'
-  },
-  {
-    id: 3,
-    nome: 'João Rodrigues',
-    telefone: '967890123',
-    veiculo: 'Carro',
-    matricula: '99-ZZ-88',
-    estado: 'Indisponível'
-  }
-];
 
 const EstafetasContainer = () => {
   const [loading, setLoading] = useState(true);
   const [userName, setUserName] = useState('');
-  const [couriers, setCouriers] = useState(mockCouriersData);
+  const [couriers, setCouriers] = useState([]);
+  const [vehicles, setVehicles] = useState([]);
+  const [states, setStates] = useState([]);
   const [form] = Form.useForm();
+
+  const disabledDate = (current) => {
+    return current && current > dayjs().subtract(18, 'year').endOf('day');
+  };
+
+  const loadData = () => {
+    const token = localStorage.getItem('user_session_token');
+    _service({
+      url: '/estafetas',
+      method: 'GET',
+      headers: {
+        'Authorization': 'Bearer ' + token
+      },
+      success: ({ json }) => {
+        if (json.result === true) {
+          setCouriers(json.couriers || []);
+        } else {
+          notification.error({
+            message: 'Erro',
+            description: json.error || 'Não foi possível carregar os estafetas.'
+          });
+        }
+      },
+      fail: () => {
+        notification.error({
+          message: 'Erro',
+          description: 'Houve uma falha ao carregar a lista de estafetas.'
+        });
+      }
+    });
+  };
 
   useEffect(() => {
     const token = localStorage.getItem('user_session_token');
@@ -54,7 +61,6 @@ const EstafetasContainer = () => {
       success: ({ json }) => {
         if (json.result === true) {
           if (json.group !== 'operador') {
-            // Se não for operador, não tem autorização para esta página
             notification.error({
               message: 'Não Autorizado',
               description: 'Apenas operadores podem aceder à página de estafetas.'
@@ -63,6 +69,22 @@ const EstafetasContainer = () => {
           } else {
             setUserName(json.primeiro_nome);
             setLoading(false);
+            loadData();
+            
+            // Load vehicles and states
+            _service({
+              url: '/estafetas/meta',
+              method: 'GET',
+              headers: {
+                'Authorization': 'Bearer ' + token
+              },
+              success: ({ json: metaJson }) => {
+                if (metaJson.result === true) {
+                  setVehicles(metaJson.vehicles || []);
+                  setStates(metaJson.states || []);
+                }
+              }
+            });
           }
         } else {
           logout();
@@ -79,21 +101,42 @@ const EstafetasContainer = () => {
   }, []);
 
   const handleFinish = (values) => {
-    const newCourier = {
-      id: Date.now(),
+    const token = localStorage.getItem('user_session_token');
+    const formattedValues = {
       nome: values.nome,
       telefone: values.telefone,
-      veiculo: values.veiculo,
-      matricula: values.matricula || 'N/A',
-      estado: 'Disponível'
+      data_nascimento: values.data_nascimento ? values.data_nascimento.format('YYYY-MM-DD') : null,
+      veiculo_id: values.veiculo_id
     };
 
-    setCouriers([...couriers, newCourier]);
-    form.resetFields();
-    
-    notification.success({
-      message: 'Sucesso',
-      description: 'Estafeta adicionado com sucesso (apenas em memória temporária).'
+    _service({
+      url: '/estafetas',
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + token
+      },
+      data: formattedValues,
+      success: ({ json }) => {
+        if (json.result === true) {
+          notification.success({
+            message: 'Sucesso',
+            description: 'Estafeta adicionado com sucesso.'
+          });
+          form.resetFields();
+          loadData();
+        } else {
+          notification.error({
+            message: 'Erro',
+            description: json.error || 'Não foi possível registar o estafeta.'
+          });
+        }
+      },
+      fail: () => {
+        notification.error({
+          message: 'Erro',
+          description: 'Houve uma falha ao registar o estafeta.'
+        });
+      }
     });
   };
 
@@ -138,7 +181,7 @@ const EstafetasContainer = () => {
       render: (estado) => {
         let color = 'default';
         if (estado === 'Disponível') color = 'success';
-        else if (estado === 'Em Entrega') color = 'processing';
+        else if (estado === 'Em Entrega' || estado === 'Em Trânsito') color = 'processing';
         else if (estado === 'Indisponível') color = 'error';
         return <Tag color={color} style={{ fontWeight: 'bold' }}>{estado}</Tag>;
       }
@@ -238,6 +281,20 @@ const EstafetasContainer = () => {
                     <Input prefix={<UserOutlined style={{ color: '#aaa' }} />} placeholder="Ex: Carlos Santos" />
                   </Form.Item>
 
+                   <Form.Item
+                    name="data_nascimento"
+                    label="Data de Nascimento"
+                    rules={[{ required: true, message: 'Insira a data de nascimento.' }]}
+                  >
+                    <DatePicker 
+                      style={{ width: '100%' }} 
+                      format="YYYY-MM-DD" 
+                      placeholder="Selecionar data" 
+                      disabledDate={disabledDate} 
+                      defaultPickerValue={dayjs().subtract(18, 'year')} 
+                    />
+                  </Form.Item>
+
                   <Form.Item
                     name="telefone"
                     label="Telemóvel"
@@ -250,23 +307,19 @@ const EstafetasContainer = () => {
                   </Form.Item>
 
                   <Form.Item
-                    name="veiculo"
+                    name="veiculo_id"
                     label="Veículo"
                     rules={[{ required: true, message: 'Selecione o veículo.' }]}
                   >
-                    <Select placeholder="Selecione o tipo de veículo">
-                      <Select.Option value="Mota">Mota</Select.Option>
-                      <Select.Option value="Carro">Carro</Select.Option>
-                      <Select.Option value="Bicicleta">Bicicleta</Select.Option>
-                      <Select.Option value="Carrinha">Carrinha</Select.Option>
+                    <Select 
+                      placeholder="Selecione o tipo de veículo"
+                      showSearch
+                      filterOption={(input, option) => (option?.children ?? '').toLowerCase().includes(input.toLowerCase())}
+                    >
+                      {vehicles.map(v => (
+                        <Select.Option key={v.id} value={v.id}>{v.nome}</Select.Option>
+                      ))}
                     </Select>
-                  </Form.Item>
-
-                  <Form.Item
-                    name="matricula"
-                    label="Matrícula (opcional)"
-                  >
-                    <Input placeholder="Ex: AA-00-XX" />
                   </Form.Item>
 
                   <Form.Item style={{ marginBottom: 0 }}>

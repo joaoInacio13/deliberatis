@@ -1942,3 +1942,66 @@ SELECT e.id, e.uid, e.lastchange_time, e.descricao, e.preco, e.porta, e.andar, e
 2026-06-18 12:27:04.043663+01:00 jdbc[26]: exception
 org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "estado_encomenda" not found; SQL statement:
 SELECT e.id, e.uid, e.lastchange_time, e.descricao, e.preco, e.porta, e.andar, e.telefone, e.observacoes, s.nome AS estado, p.nome AS pagamento, cp.codigo AS codigo_postal, cp.rua, c.nome AS cidade FROM encomenda e LEFT JOIN estado_encomenda s ON e.estado_id = s.id LEFT JOIN pagamento p ON e.pagamento_id = p.id LEFT JOIN codigo_postal cp ON e.codigo_postal_id = cp.id LEFT JOIN cidade c ON cp.cidade_id = c.id WHERE e.cliente_id = ? AND e.active = true ORDER BY e.lastchange_time DESC [42102-240]
+2026-06-22 13:17:12.610887+01:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "encomenda_estado" not found; SQL statement:
+SELECT e.id, e.uid, e.lastchange_time, e.descricao, e.preco, e.porta, e.andar, e.telefone, e.observacoes, s.nome AS estado, p.nome AS pagamento, cp.codigo AS codigo_postal, cp.rua, c.nome AS cidade, cl.primeiro_nome AS cliente_primeiro_nome, cl.ultimo_nome AS cliente_ultimo_nome, cl.email AS cliente_email FROM encomenda e LEFT JOIN encomenda_estado s ON e.estado_id = s.id LEFT JOIN pagamento p ON e.pagamento_id = p.id LEFT JOIN codigo_postal cp ON e.codigo_postal_id = cp.id LEFT JOIN cidade c ON cp.cidade_id = c.id LEFT JOIN cliente cl ON e.cliente_id = cl.id WHERE e.active = true AND s.nome = 'Pendente' ORDER BY e.lastchange_time DESC [42102-240]
+2026-06-22 13:17:23.371627+01:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "encomenda_estado" not found; SQL statement:
+SELECT e.id, e.uid, e.lastchange_time, e.descricao, e.preco, e.porta, e.andar, e.telefone, e.observacoes, s.nome AS estado, p.nome AS pagamento, cp.codigo AS codigo_postal, cp.rua, c.nome AS cidade FROM encomenda e LEFT JOIN encomenda_estado s ON e.estado_id = s.id LEFT JOIN pagamento p ON e.pagamento_id = p.id LEFT JOIN codigo_postal cp ON e.codigo_postal_id = cp.id LEFT JOIN cidade c ON cp.cidade_id = c.id WHERE e.cliente_id = ? AND e.active = true ORDER BY e.lastchange_time DESC [42102-240]
+2026-06-22 13:21:02.739626+01:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "encomenda_estado" not found; SQL statement:
+SELECT e.id, e.uid, e.lastchange_time, e.descricao, e.preco, e.porta, e.andar, e.telefone, e.observacoes, s.nome AS estado, p.nome AS pagamento, cp.codigo AS codigo_postal, cp.rua, c.nome AS cidade FROM encomenda e LEFT JOIN encomenda_estado s ON e.estado_id = s.id LEFT JOIN pagamento p ON e.pagamento_id = p.id LEFT JOIN codigo_postal cp ON e.codigo_postal_id = cp.id LEFT JOIN cidade c ON cp.cidade_id = c.id WHERE e.cliente_id = ? AND e.active = true ORDER BY e.lastchange_time DESC [42102-240]
+2026-06-22 13:21:45.118015+01:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "encomenda_estado" not found; SQL statement:
+SELECT * FROM encomenda_estado LIMIT 1 [42102-240]
+2026-06-22 13:24:37.597448+01:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "encomenda_estado" not found; SQL statement:
+SELECT * FROM encomenda_estado LIMIT 1 [42102-240]
+2026-06-22 13:26:38.870246+01:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "cross_references" not found; SQL statement:
+SELECT PKTABLE_NAME, FKTABLE_NAME, FK_NAME FROM INFORMATION_SCHEMA.CROSS_REFERENCES WHERE FKTABLE_NAME='ENCOMENDA' [42102-240]
+2026-06-22 13:31:55.343803+01:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "encomenda_estado" not found; SQL statement:
+SELECT e.id, e.uid, e.lastchange_time, e.descricao, e.preco, e.porta, e.andar, e.telefone, e.observacoes, s.nome AS estado, p.nome AS pagamento, cp.codigo AS codigo_postal, cp.rua, c.nome AS cidade FROM encomenda e LEFT JOIN encomenda_estado s ON e.estado_id = s.id LEFT JOIN pagamento p ON e.pagamento_id = p.id LEFT JOIN codigo_postal cp ON e.codigo_postal_id = cp.id LEFT JOIN cidade c ON cp.cidade_id = c.id WHERE e.cliente_id = ? AND e.active = true ORDER BY e.lastchange_time DESC [42102-240]
+2026-06-22 13:33:38.243711+01:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "encomenda_estado" not found; SQL statement:
+SELECT e.id, e.uid, e.lastchange_time, e.descricao, e.preco, e.porta, e.andar, e.telefone, e.observacoes, s.nome AS estado, p.nome AS pagamento, cp.codigo AS codigo_postal, cp.rua, c.nome AS cidade FROM encomenda e LEFT JOIN encomenda_estado s ON e.estado_id = s.id LEFT JOIN pagamento p ON e.pagamento_id = p.id LEFT JOIN codigo_postal cp ON e.codigo_postal_id = cp.id LEFT JOIN cidade c ON cp.cidade_id = c.id WHERE e.cliente_id = ? AND e.active = true ORDER BY e.lastchange_time DESC [42102-240]
+2026-06-22 13:33:50.614993+01:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "encomenda_estado" not found; SQL statement:
+SELECT e.id, e.uid, e.lastchange_time, e.descricao, e.preco, e.porta, e.andar, e.telefone, e.observacoes, s.nome AS estado, p.nome AS pagamento, cp.codigo AS codigo_postal, cp.rua, c.nome AS cidade FROM encomenda e LEFT JOIN encomenda_estado s ON e.estado_id = s.id LEFT JOIN pagamento p ON e.pagamento_id = p.id LEFT JOIN codigo_postal cp ON e.codigo_postal_id = cp.id LEFT JOIN cidade c ON cp.cidade_id = c.id WHERE e.cliente_id = ? AND e.active = true ORDER BY e.lastchange_time DESC [42102-240]
+2026-06-22 13:38:48.007169+01:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "encomenda_estado" not found; SQL statement:
+SELECT e.id, e.uid, e.lastchange_time, e.descricao, e.preco, e.porta, e.andar, e.telefone, e.observacoes, s.nome AS estado, p.nome AS pagamento, cp.codigo AS codigo_postal, cp.rua, c.nome AS cidade FROM encomenda e LEFT JOIN encomenda_estado s ON e.estado_id = s.id LEFT JOIN pagamento p ON e.pagamento_id = p.id LEFT JOIN codigo_postal cp ON e.codigo_postal_id = cp.id LEFT JOIN cidade c ON cp.cidade_id = c.id WHERE e.cliente_id = ? AND e.active = true ORDER BY e.lastchange_time DESC [42102-240]
+2026-06-22 13:41:23.858990+01:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "encomenda_estado" not found; SQL statement:
+SELECT e.id, e.uid, e.lastchange_time, e.descricao, e.preco, e.porta, e.andar, e.telefone, e.observacoes, s.nome AS estado, p.nome AS pagamento, cp.codigo AS codigo_postal, cp.rua, c.nome AS cidade, cl.primeiro_nome AS cliente_primeiro_nome, cl.ultimo_nome AS cliente_ultimo_nome, cl.email AS cliente_email FROM encomenda e LEFT JOIN encomenda_estado s ON e.estado_id = s.id LEFT JOIN pagamento p ON e.pagamento_id = p.id LEFT JOIN codigo_postal cp ON e.codigo_postal_id = cp.id LEFT JOIN cidade c ON cp.cidade_id = c.id LEFT JOIN cliente cl ON e.cliente_id = cl.id WHERE e.active = true AND s.nome = 'Pendente' ORDER BY e.lastchange_time DESC [42102-240]
+2026-06-22 13:41:48.872694+01:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "encomenda_estado" not found; SQL statement:
+SELECT e.id, e.uid, e.lastchange_time, e.descricao, e.preco, e.porta, e.andar, e.telefone, e.observacoes, s.nome AS estado, p.nome AS pagamento, cp.codigo AS codigo_postal, cp.rua, c.nome AS cidade, cl.primeiro_nome AS cliente_primeiro_nome, cl.ultimo_nome AS cliente_ultimo_nome, cl.email AS cliente_email FROM encomenda e LEFT JOIN encomenda_estado s ON e.estado_id = s.id LEFT JOIN pagamento p ON e.pagamento_id = p.id LEFT JOIN codigo_postal cp ON e.codigo_postal_id = cp.id LEFT JOIN cidade c ON cp.cidade_id = c.id LEFT JOIN cliente cl ON e.cliente_id = cl.id WHERE e.active = true AND s.nome = 'Pendente' ORDER BY e.lastchange_time DESC [42102-240]
+2026-06-22 13:42:57.059731+01:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "encomenda_estado" not found; SQL statement:
+SELECT e.id, e.uid, e.lastchange_time, e.descricao, e.preco, e.porta, e.andar, e.telefone, e.observacoes, s.nome AS estado, p.nome AS pagamento, cp.codigo AS codigo_postal, cp.rua, c.nome AS cidade FROM encomenda e LEFT JOIN encomenda_estado s ON e.estado_id = s.id LEFT JOIN pagamento p ON e.pagamento_id = p.id LEFT JOIN codigo_postal cp ON e.codigo_postal_id = cp.id LEFT JOIN cidade c ON cp.cidade_id = c.id WHERE e.cliente_id = ? AND e.active = true ORDER BY e.lastchange_time DESC [42102-240]
+2026-06-22 13:42:58.994973+01:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "encomenda_estado" not found; SQL statement:
+SELECT e.id, e.uid, e.lastchange_time, e.descricao, e.preco, e.porta, e.andar, e.telefone, e.observacoes, s.nome AS estado, p.nome AS pagamento, cp.codigo AS codigo_postal, cp.rua, c.nome AS cidade FROM encomenda e LEFT JOIN encomenda_estado s ON e.estado_id = s.id LEFT JOIN pagamento p ON e.pagamento_id = p.id LEFT JOIN codigo_postal cp ON e.codigo_postal_id = cp.id LEFT JOIN cidade c ON cp.cidade_id = c.id WHERE e.cliente_id = ? AND e.active = true ORDER BY e.lastchange_time DESC [42102-240]
+2026-06-22 13:45:13.848768+01:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "encomenda_estado" not found; SQL statement:
+SELECT e.id, e.uid, e.lastchange_time, e.descricao, e.preco, e.porta, e.andar, e.telefone, e.observacoes, 
+       s.nome AS estado, p.nome AS pagamento, cp.codigo AS codigo_postal, cp.rua, c.nome AS cidade 
+FROM encomenda e 
+LEFT JOIN encomenda_estado s ON e.estado_id = s.id 
+LEFT JOIN pagamento p ON e.pagamento_id = p.id 
+LEFT JOIN codigo_postal cp ON e.codigo_postal_id = cp.id 
+LEFT JOIN cidade c ON cp.cidade_id = c.id 
+WHERE e.cliente_id = 45 -- Substitua pelo ID real de um cliente para testar
+AND e.active = true 
+ORDER BY e.lastchange_time DESC; [42102-240]
+2026-06-22 13:46:42.132648+01:00 jdbc[13]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "encomenda_estado" not found; SQL statement:
+SELECT e.id, e.uid, e.lastchange_time, e.descricao, e.preco, e.porta, e.andar, e.telefone, e.observacoes, e.latitude, e.longitude, s.nome AS estado, p.nome AS pagamento, cp.codigo AS codigo_postal, cp.rua, c.nome AS cidade FROM encomenda e LEFT JOIN encomenda_estado s ON e.estado_id = s.id LEFT JOIN pagamento p ON e.pagamento_id = p.id LEFT JOIN codigo_postal cp ON e.codigo_postal_id = cp.id LEFT JOIN cidade c ON cp.cidade_id = c.id WHERE e.cliente_id = ? AND e.uid = ? AND e.active = true [42102-240]
+2026-06-22 13:48:48.478828+01:00 jdbc[13]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "encomenda_estado" not found; SQL statement:
+SELECT e.id, e.uid, e.lastchange_time, e.descricao, e.preco, e.porta, e.andar, e.telefone, e.observacoes, s.nome AS estado, p.nome AS pagamento, cp.codigo AS codigo_postal, cp.rua, c.nome AS cidade, cl.primeiro_nome AS cliente_primeiro_nome, cl.ultimo_nome AS cliente_ultimo_nome, cl.email AS cliente_email FROM encomenda e LEFT JOIN encomenda_estado s ON e.estado_id = s.id LEFT JOIN pagamento p ON e.pagamento_id = p.id LEFT JOIN codigo_postal cp ON e.codigo_postal_id = cp.id LEFT JOIN cidade c ON cp.cidade_id = c.id LEFT JOIN cliente cl ON e.cliente_id = cl.id WHERE e.active = true AND s.nome = 'Pendente' ORDER BY e.lastchange_time DESC [42102-240]
+2026-06-22 13:48:52.438566+01:00 jdbc[13]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "encomenda_estado" not found; SQL statement:
+SELECT e.id, e.uid, e.lastchange_time, e.descricao, e.preco, e.porta, e.andar, e.telefone, e.observacoes, s.nome AS estado, p.nome AS pagamento, cp.codigo AS codigo_postal, cp.rua, c.nome AS cidade, cl.primeiro_nome AS cliente_primeiro_nome, cl.ultimo_nome AS cliente_ultimo_nome, cl.email AS cliente_email FROM encomenda e LEFT JOIN encomenda_estado s ON e.estado_id = s.id LEFT JOIN pagamento p ON e.pagamento_id = p.id LEFT JOIN codigo_postal cp ON e.codigo_postal_id = cp.id LEFT JOIN cidade c ON cp.cidade_id = c.id LEFT JOIN cliente cl ON e.cliente_id = cl.id WHERE e.active = true AND s.nome = 'Pendente' ORDER BY e.lastchange_time DESC [42102-240]

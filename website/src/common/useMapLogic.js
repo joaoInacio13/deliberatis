@@ -108,7 +108,7 @@ export default function useMapLogic({
             attribution: '&copy; OpenStreetMap contributors'
           }).addTo(map);
 
-          // Se já existirem coordenadas confirmadas, desenha o pin inicial imediatamente
+          // Se já existirem coordenadadesenha o pin inicial imediatamentes confirmadas, 
           if (confirmedCoords) {
             markerInstanceRef.current = L.marker([confirmedCoords.lat, confirmedCoords.lng]).addTo(map);
           }

@@ -22,7 +22,7 @@ _form.createIfNotExists(
 		.set("export_xls", true)
 		.set("export_xml", true)
 		.set("firebase", "")
-		.set("name", "estado_encomenda")
+		.set("name", "encomenda_estado")
 		.set("parent_uid", "cb45ff07-780d-40fa-968b-06cd6ef6c387")
 		.set("reorder", 0)
 		.set("report", false)
