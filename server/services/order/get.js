@@ -90,26 +90,30 @@ try {
       if (isOperator) {
         orderQuery = _db.query(
           "SELECT e.id, e.uid, e.lastchange_time, e.descricao, e.preco, e.porta, e.andar, e.telefone, e.observacoes, " +
-          "e.latitude, e.longitude, " +
-          "s.nome AS estado, p.nome AS pagamento, cp.codigo AS codigo_postal, cp.rua, c.nome AS cidade " +
+          "e.latitude, e.longitude, e.estafeta_id, e.motivo_rejeicao, " +
+          "s.nome AS estado, p.nome AS pagamento, cp.codigo AS codigo_postal, cp.rua, c.nome AS cidade, " +
+          "est.nome AS estafeta_nome " +
           "FROM encomenda e " +
           "LEFT JOIN encomenda_estado s ON e.estado_id = s.id " +
           "LEFT JOIN pagamento p ON e.pagamento_id = p.id " +
           "LEFT JOIN codigo_postal cp ON e.codigo_postal_id = cp.id " +
           "LEFT JOIN cidade c ON cp.cidade_id = c.id " +
+          "LEFT JOIN estafeta est ON e.estafeta_id = est.id " +
           "WHERE e.uid = ? AND e.active = true",
           uid
         );
       } else {
         orderQuery = _db.query(
           "SELECT e.id, e.uid, e.lastchange_time, e.descricao, e.preco, e.porta, e.andar, e.telefone, e.observacoes, " +
-          "e.latitude, e.longitude, " +
-          "s.nome AS estado, p.nome AS pagamento, cp.codigo AS codigo_postal, cp.rua, c.nome AS cidade " +
+          "e.latitude, e.longitude, e.estafeta_id, e.motivo_rejeicao, " +
+          "s.nome AS estado, p.nome AS pagamento, cp.codigo AS codigo_postal, cp.rua, c.nome AS cidade, " +
+          "est.nome AS estafeta_nome " +
           "FROM encomenda e " +
           "LEFT JOIN encomenda_estado s ON e.estado_id = s.id " +
           "LEFT JOIN pagamento p ON e.pagamento_id = p.id " +
           "LEFT JOIN codigo_postal cp ON e.codigo_postal_id = cp.id " +
           "LEFT JOIN cidade c ON cp.cidade_id = c.id " +
+          "LEFT JOIN estafeta est ON e.estafeta_id = est.id " +
           "WHERE e.cliente_id = ? AND e.uid = ? AND e.active = true",
           profileId, uid
         );
@@ -165,6 +169,9 @@ try {
             .set("cidade", row.getString("cidade"))
             .set("latitude", latitude)
             .set("longitude", longitude)
+            .set("estafeta_id", row.getInt("estafeta_id"))
+            .set("estafeta_nome", row.getString("estafeta_nome") || "")
+            .set("motivo_rejeicao", row.getString("motivo_rejeicao") || "")
           )
         );
       }

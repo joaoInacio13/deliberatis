@@ -98,6 +98,37 @@ const OrderDetailsInfo = ({ order, formatDate }) => {
           )}
         </div>
 
+        {order.estafeta_nome && (
+          <div>
+            <span style={{ color: '#888', fontSize: '14px', display: 'block', marginBottom: '4px' }}>
+              Estafeta Atribuído
+            </span>
+            <strong style={{ color: '#333', fontSize: '16px', fontWeight: '600' }}>
+              {order.estafeta_nome}
+            </strong>
+          </div>
+        )}
+
+        {order.motivo_rejeicao && (
+          <div>
+            <span style={{ color: '#ff4d4f', fontSize: '14px', display: 'block', marginBottom: '4px' }}>
+              Motivo da Rejeição
+            </span>
+            <div style={{ 
+              fontSize: '15px', 
+              color: '#ff4d4f', 
+              backgroundColor: '#fff1f0', 
+              padding: '10px 14px', 
+              borderRadius: '4px', 
+              borderLeft: '3px solid #ff4d4f', 
+              marginTop: '4px', 
+              lineHeight: '1.4' 
+            }}>
+              {order.motivo_rejeicao}
+            </div>
+          </div>
+        )}
+
         {order.observacoes && (
           <div>
             <span style={{ color: '#888', fontSize: '14px', display: 'block', marginBottom: '4px' }}>

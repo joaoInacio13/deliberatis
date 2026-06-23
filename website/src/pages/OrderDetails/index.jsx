@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Layout, Button, Spin, Row, Col, notification, Form } from 'antd';
+import { Layout, Button, Spin, Row, Col, notification, Form, Card, Select, Input } from 'antd';
 import { ArrowLeftOutlined, EditOutlined } from '@ant-design/icons';
 import _service from '@netuno/service-client';
 
@@ -38,6 +38,14 @@ const OrderDetailsContainer = () => {
 
   const [form] = Form.useForm();
   const [isMapModalOpen, setIsMapModalOpen] = useState(false);
+
+  // Operator states
+  const [isOperator, setIsOperator] = useState(false);
+  const [availableCouriers, setAvailableCouriers] = useState([]);
+  const [selectedCourierId, setSelectedCourierId] = useState(null);
+  const [rejectionReason, setRejectionReason] = useState('');
+  const [decisionSubmitting, setDecisionSubmitting] = useState(false);
+  const [isRejectedAction, setIsRejectedAction] = useState(false);
 
   const {
     loadingPostalCode,
@@ -105,6 +113,21 @@ const OrderDetailsContainer = () => {
   const mapInstanceRef = useRef(null);
   const markerInstanceRef = useRef(null);
 
+  const fetchAvailableCouriers = (token) => {
+    _service({
+      url: '/estafetas',
+      method: 'GET',
+      headers: {
+        'Authorization': 'Bearer ' + token
+      },
+      success: ({ json }) => {
+        if (json.result === true) {
+          setAvailableCouriers(json.couriers || []);
+        }
+      }
+    });
+  };
+
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const orderUid = params.get('uid');
@@ -133,7 +156,12 @@ const OrderDetailsContainer = () => {
       success: ({ json }) => {
         if (json.result === true) {
           setUserName(json.primeiro_nome);
+          const userIsOperator = json.group === 'operador';
+          setIsOperator(userIsOperator);
           loadOrderDetails(token, orderUid);
+          if (userIsOperator) {
+            fetchAvailableCouriers(token);
+          }
         } else {
           logout();
         }
@@ -204,6 +232,69 @@ const OrderDetailsContainer = () => {
       },
       end: () => {
         setLoading(false);
+      }
+    });
+  };
+
+  const handleOperatorDecision = (status) => {
+    const token = localStorage.getItem('user_session_token');
+    
+    if (status === 'Em Trânsito' && !selectedCourierId) {
+      notification.warning({
+        message: 'Aviso',
+        description: 'Por favor, selecione um estafeta.'
+      });
+      return;
+    }
+    
+    if (status === 'Rejeitada' && (!rejectionReason || rejectionReason.trim() === '')) {
+      notification.warning({
+        message: 'Aviso',
+        description: 'Por favor, indique o motivo da rejeição.'
+      });
+      return;
+    }
+
+    _service({
+      url: '/order/update-status',
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + token
+      },
+      data: {
+        uid: uid,
+        status: status,
+        estafeta_id: status === 'Em Trânsito' ? selectedCourierId : null,
+        motivo_rejeicao: status === 'Rejeitada' ? rejectionReason : null
+      },
+      start: () => {
+        setDecisionSubmitting(true);
+      },
+      success: ({ json }) => {
+        if (json.result === true) {
+          notification.success({
+            message: 'Sucesso',
+            description: `Encomenda atualizada com sucesso para '${status}'.`
+          });
+          setIsRejectedAction(false);
+          setRejectionReason('');
+          setSelectedCourierId(null);
+          loadOrderDetails(token, uid);
+        } else {
+          notification.error({
+            message: 'Erro',
+            description: json.error || 'Não foi possível atualizar a encomenda.'
+          });
+        }
+      },
+      fail: () => {
+        notification.error({
+          message: 'Erro',
+          description: 'Houve uma falha ao enviar a decisão.'
+        });
+      },
+      end: () => {
+        setDecisionSubmitting(false);
       }
     });
   };
@@ -293,7 +384,7 @@ const OrderDetailsContainer = () => {
             </h2>
             <p style={{ color: '#888', margin: '4px 0 0 0', fontSize: '16px' }}>Código único: #{uid}</p>
           </div>
-          {order && (
+          {order && !isOperator && (
             <Button 
               type="primary"
               size="large"
@@ -310,7 +401,7 @@ const OrderDetailsContainer = () => {
         {order && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
             {/* Timeline do Estado */}
-            <OrderTimeline statusIndex={statusIndex} />
+            <OrderTimeline statusIndex={statusIndex} statusText={order.estado} rejectionReason={order.motivo_rejeicao} />
 
             {/* Informações e Mapa */}
             <Row gutter={[32, 32]}>
@@ -322,6 +413,96 @@ const OrderDetailsContainer = () => {
                 <OrderDetailsMap order={order} mapRef={mapRef} />
               </Col>
             </Row>
+
+            {/* Operator Assignment Panel */}
+            {isOperator && order.estado === 'Pendente' && (
+              <Card 
+                title={<span style={{ fontWeight: '700', color: '#333' }}>Decisão do Operador & Atribuição de Estafeta</span>}
+                bordered={false}
+                style={{ borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.04)' }}
+              >
+                <Row gutter={[24, 24]} align="bottom">
+                  <Col xs={24} md={12}>
+                    <span style={{ color: '#666', fontSize: '14px', display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                      Selecionar Estafeta *
+                    </span>
+                    <Select
+                      placeholder="Selecione um estafeta"
+                      style={{ width: '100%' }}
+                      size="large"
+                      showSearch
+                      filterOption={(input, option) => (option?.children ?? '').toLowerCase().includes(input.toLowerCase())}
+                      value={selectedCourierId}
+                      onChange={(val) => setSelectedCourierId(val)}
+                      disabled={decisionSubmitting || isRejectedAction}
+                    >
+                      {availableCouriers
+                        .filter(c => c.estado === 'Disponível')
+                        .map(c => (
+                          <Select.Option key={c.id} value={c.id}>
+                            {c.nome} ({c.veiculo} - {c.matricula})
+                          </Select.Option>
+                        ))}
+                    </Select>
+                  </Col>
+                  
+                  <Col xs={24} md={12}>
+                    <div style={{ display: 'flex', gap: '16px' }}>
+                      <Button
+                        type="primary"
+                        size="large"
+                        loading={decisionSubmitting}
+                        disabled={isRejectedAction}
+                        onClick={() => handleOperatorDecision('Em Trânsito')}
+                        style={{ flex: 1, backgroundColor: '#2eb82e', borderColor: '#2eb82e', borderRadius: '6px', fontWeight: '600' }}
+                      >
+                        Aceitar (Em Trânsito)
+                      </Button>
+                      <Button
+                        type="primary"
+                        danger
+                        size="large"
+                        loading={decisionSubmitting}
+                        onClick={() => {
+                          if (!isRejectedAction) {
+                            setIsRejectedAction(true);
+                          } else {
+                            handleOperatorDecision('Rejeitada');
+                          }
+                        }}
+                        style={{ flex: 1, borderRadius: '6px', fontWeight: '600' }}
+                      >
+                        {isRejectedAction ? 'Confirmar Rejeição' : 'Rejeitar Encomenda'}
+                      </Button>
+                    </div>
+                  </Col>
+
+                  {isRejectedAction && (
+                    <Col xs={24}>
+                      <div style={{ marginTop: '16px' }}>
+                        <span style={{ color: '#ff4d4f', fontSize: '14px', display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                          Motivo de Rejeição *
+                        </span>
+                        <Input.TextArea
+                          rows={4}
+                          placeholder="Escreva aqui o motivo detalhado para rejeitar esta encomenda..."
+                          value={rejectionReason}
+                          onChange={(e) => setRejectionReason(e.target.value)}
+                          disabled={decisionSubmitting}
+                        />
+                        <Button 
+                          type="text" 
+                          onClick={() => setIsRejectedAction(false)} 
+                          style={{ marginTop: '8px', padding: 0 }}
+                        >
+                          Cancelar Rejeição
+                        </Button>
+                      </div>
+                    </Col>
+                  )}
+                </Row>
+              </Card>
+            )}
           </div>
         )}
       </Content>
