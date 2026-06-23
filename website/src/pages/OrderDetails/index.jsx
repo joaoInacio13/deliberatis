@@ -1,11 +1,13 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Layout, Button, Spin, Row, Col, notification, Form, Card, Select, Input } from 'antd';
+import { Layout, Button, Spin, Row, Col, Form } from 'antd';
 import { ArrowLeftOutlined, EditOutlined } from '@ant-design/icons';
-import _service from '@netuno/service-client';
+import useSession from '../../common/useSession';
+import useOrderDetails from '../../common/useOrderDetails';
 
 import OrderTimeline from '../../components/OrderDetailsComponent/OrderTimeline';
 import OrderDetailsInfo from '../../components/OrderDetailsComponent/OrderDetailsInfo';
 import OrderDetailsMap from '../../components/OrderDetailsComponent/OrderDetailsMap';
+import OrderDecisionPanel from '../../components/OrderDetailsComponent/OrderDecisionPanel';
 import EditOrderModal from '../../components/EditOrderModalComponent';
 import MapModal from '../../components/MapModalComponent';
 
@@ -31,21 +33,30 @@ const formatDate = (dateStr) => {
 
 
 const OrderDetailsContainer = () => {
-  const [loading, setLoading] = useState(true);
-  const [userName, setUserName] = useState('');
-  const [order, setOrder] = useState(null);
+  const { sessionLoading, userName, userGroup, logout } = useSession();
   const [uid, setUid] = useState('');
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const orderUid = params.get('uid');
+    if (orderUid) {
+      setUid(orderUid);
+    }
+  }, []);
+
+  const isOperator = userGroup === 'operador';
+
+  const {
+    loading,
+    order,
+    availableCouriers,
+    decisionSubmitting,
+    handleOperatorDecision,
+    loadOrderDetails
+  } = useOrderDetails(uid, sessionLoading, isOperator);
 
   const [form] = Form.useForm();
   const [isMapModalOpen, setIsMapModalOpen] = useState(false);
-
-  // Operator states
-  const [isOperator, setIsOperator] = useState(false);
-  const [availableCouriers, setAvailableCouriers] = useState([]);
-  const [selectedCourierId, setSelectedCourierId] = useState(null);
-  const [rejectionReason, setRejectionReason] = useState('');
-  const [decisionSubmitting, setDecisionSubmitting] = useState(false);
-  const [isRejectedAction, setIsRejectedAction] = useState(false);
 
   const {
     loadingPostalCode,
@@ -71,7 +82,10 @@ const OrderDetailsContainer = () => {
     order,
     form,
     uid,
-    loadOrderDetails: (token, orderUid) => loadOrderDetails(token, orderUid),
+    loadOrderDetails: () => {
+      const token = localStorage.getItem('user_session_token');
+      loadOrderDetails(token, uid);
+    },
     setPostalCodeStatus,
     setPostalCodeErrorMsg
   });
@@ -113,68 +127,7 @@ const OrderDetailsContainer = () => {
   const mapInstanceRef = useRef(null);
   const markerInstanceRef = useRef(null);
 
-  const fetchAvailableCouriers = (token) => {
-    _service({
-      url: '/estafetas',
-      method: 'GET',
-      headers: {
-        'Authorization': 'Bearer ' + token
-      },
-      success: ({ json }) => {
-        if (json.result === true) {
-          setAvailableCouriers(json.couriers || []);
-        }
-      }
-    });
-  };
-
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const orderUid = params.get('uid');
-    if (!orderUid) {
-      notification.error({
-        message: 'Erro',
-        description: 'Código de encomenda não fornecido.'
-      });
-      window.location.href = "/public/home.html";
-      return;
-    }
-    setUid(orderUid);
-
-    const token = localStorage.getItem('user_session_token');
-    if (!token) {
-      window.location.href = "/public/auth.html";
-      return;
-    }
-
-    _service({
-      url: '/check-session',
-      method: 'POST',
-      headers: {
-        'Authorization': 'Bearer ' + token
-      },
-      success: ({ json }) => {
-        if (json.result === true) {
-          setUserName(json.primeiro_nome);
-          const userIsOperator = json.group === 'operador';
-          setIsOperator(userIsOperator);
-          loadOrderDetails(token, orderUid);
-          if (userIsOperator) {
-            fetchAvailableCouriers(token);
-          }
-        } else {
-          logout();
-        }
-      },
-      fail: () => {
-        notification.error({
-          message: 'Erro de Sessão',
-          description: 'Houve uma falha ao verificar a tua sessão.'
-        });
-        logout();
-      }
-    });
-
     return () => {
       if (mapInstanceRef.current) {
         mapInstanceRef.current.remove();
@@ -202,103 +155,6 @@ const OrderDetailsContainer = () => {
     }
   }, [order]);
 
-  const loadOrderDetails = (token, orderUid) => {
-    _service({
-      url: '/order',
-      method: 'GET',
-      headers: {
-        'Authorization': 'Bearer ' + token
-      },
-      data: { uid: orderUid },
-      success: ({ json }) => {
-        if (json.result === true && json.order) {
-          const fetchedOrder = json.order;
-          setOrder(fetchedOrder);
-        } else {
-          notification.error({
-            message: 'Erro',
-            description: 'Encomenda não encontrada.'
-          });
-          setTimeout(() => {
-            window.location.href = "/public/home.html";
-          }, 2000);
-        }
-      },
-      fail: () => {
-        notification.error({
-          message: 'Erro de Rede',
-          description: 'Não foi possível carregar os detalhes da encomenda.'
-        });
-      },
-      end: () => {
-        setLoading(false);
-      }
-    });
-  };
-
-  const handleOperatorDecision = (status) => {
-    const token = localStorage.getItem('user_session_token');
-    
-    if (status === 'Em Trânsito' && !selectedCourierId) {
-      notification.warning({
-        message: 'Aviso',
-        description: 'Por favor, selecione um estafeta.'
-      });
-      return;
-    }
-    
-    if (status === 'Rejeitada' && (!rejectionReason || rejectionReason.trim() === '')) {
-      notification.warning({
-        message: 'Aviso',
-        description: 'Por favor, indique o motivo da rejeição.'
-      });
-      return;
-    }
-
-    _service({
-      url: '/order/update-status',
-      method: 'POST',
-      headers: {
-        'Authorization': 'Bearer ' + token
-      },
-      data: {
-        uid: uid,
-        status: status,
-        estafeta_id: status === 'Em Trânsito' ? selectedCourierId : null,
-        motivo_rejeicao: status === 'Rejeitada' ? rejectionReason : null
-      },
-      start: () => {
-        setDecisionSubmitting(true);
-      },
-      success: ({ json }) => {
-        if (json.result === true) {
-          notification.success({
-            message: 'Sucesso',
-            description: `Encomenda atualizada com sucesso para '${status}'.`
-          });
-          setIsRejectedAction(false);
-          setRejectionReason('');
-          setSelectedCourierId(null);
-          loadOrderDetails(token, uid);
-        } else {
-          notification.error({
-            message: 'Erro',
-            description: json.error || 'Não foi possível atualizar a encomenda.'
-          });
-        }
-      },
-      fail: () => {
-        notification.error({
-          message: 'Erro',
-          description: 'Houve uma falha ao enviar a decisão.'
-        });
-      },
-      end: () => {
-        setDecisionSubmitting(false);
-      }
-    });
-  };
-
   const initMap = (lat, lng) => {
     const L = window.L;
     if (!L || !mapRef.current || mapInstanceRef.current) return;
@@ -318,11 +174,6 @@ const OrderDetailsContainer = () => {
       .openPopup();
   };
 
-  const logout = () => {
-    localStorage.removeItem('user_session_token');
-    window.location.href = "/public/auth.html";
-  };
-
   const getStatusIndex = (status) => {
     switch (status) {
       case 'Pendente':
@@ -336,7 +187,7 @@ const OrderDetailsContainer = () => {
     }
   };
 
-  if (loading) {
+  if (sessionLoading || loading) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', backgroundColor: '#f5f5f5' }}>
         <Spin size="large" tip="A carregar detalhes da encomenda..." />
@@ -416,92 +267,11 @@ const OrderDetailsContainer = () => {
 
             {/* Operator Assignment Panel */}
             {isOperator && order.estado === 'Pendente' && (
-              <Card 
-                title={<span style={{ fontWeight: '700', color: '#333' }}>Decisão do Operador & Atribuição de Estafeta</span>}
-                bordered={false}
-                style={{ borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.04)' }}
-              >
-                <Row gutter={[24, 24]} align="bottom">
-                  <Col xs={24} md={12}>
-                    <span style={{ color: '#666', fontSize: '14px', display: 'block', marginBottom: '8px', fontWeight: '500' }}>
-                      Selecionar Estafeta *
-                    </span>
-                    <Select
-                      placeholder="Selecione um estafeta"
-                      style={{ width: '100%' }}
-                      size="large"
-                      showSearch
-                      filterOption={(input, option) => (option?.children ?? '').toLowerCase().includes(input.toLowerCase())}
-                      value={selectedCourierId}
-                      onChange={(val) => setSelectedCourierId(val)}
-                      disabled={decisionSubmitting || isRejectedAction}
-                    >
-                      {availableCouriers
-                        .filter(c => c.estado === 'Disponível')
-                        .map(c => (
-                          <Select.Option key={c.id} value={c.id}>
-                            {c.nome} ({c.veiculo} - {c.matricula})
-                          </Select.Option>
-                        ))}
-                    </Select>
-                  </Col>
-                  
-                  <Col xs={24} md={12}>
-                    <div style={{ display: 'flex', gap: '16px' }}>
-                      <Button
-                        type="primary"
-                        size="large"
-                        loading={decisionSubmitting}
-                        disabled={isRejectedAction}
-                        onClick={() => handleOperatorDecision('Em Trânsito')}
-                        style={{ flex: 1, backgroundColor: '#2eb82e', borderColor: '#2eb82e', borderRadius: '6px', fontWeight: '600' }}
-                      >
-                        Aceitar (Em Trânsito)
-                      </Button>
-                      <Button
-                        type="primary"
-                        danger
-                        size="large"
-                        loading={decisionSubmitting}
-                        onClick={() => {
-                          if (!isRejectedAction) {
-                            setIsRejectedAction(true);
-                          } else {
-                            handleOperatorDecision('Rejeitada');
-                          }
-                        }}
-                        style={{ flex: 1, borderRadius: '6px', fontWeight: '600' }}
-                      >
-                        {isRejectedAction ? 'Confirmar Rejeição' : 'Rejeitar Encomenda'}
-                      </Button>
-                    </div>
-                  </Col>
-
-                  {isRejectedAction && (
-                    <Col xs={24}>
-                      <div style={{ marginTop: '16px' }}>
-                        <span style={{ color: '#ff4d4f', fontSize: '14px', display: 'block', marginBottom: '8px', fontWeight: '500' }}>
-                          Motivo de Rejeição *
-                        </span>
-                        <Input.TextArea
-                          rows={4}
-                          placeholder="Escreva aqui o motivo detalhado para rejeitar esta encomenda..."
-                          value={rejectionReason}
-                          onChange={(e) => setRejectionReason(e.target.value)}
-                          disabled={decisionSubmitting}
-                        />
-                        <Button 
-                          type="text" 
-                          onClick={() => setIsRejectedAction(false)} 
-                          style={{ marginTop: '8px', padding: 0 }}
-                        >
-                          Cancelar Rejeição
-                        </Button>
-                      </div>
-                    </Col>
-                  )}
-                </Row>
-              </Card>
+              <OrderDecisionPanel
+                couriers={availableCouriers}
+                submitting={decisionSubmitting}
+                onDecision={(status, estafetaId, reason) => handleOperatorDecision(status, estafetaId, reason)}
+              />
             )}
           </div>
         )}

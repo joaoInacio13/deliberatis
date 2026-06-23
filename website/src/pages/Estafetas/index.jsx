@@ -3,12 +3,12 @@ import { Layout, Menu, Button, Spin, notification, Form, Input, Card, Row, Col, 
 import { LogoutOutlined, OrderedListOutlined, UserSwitchOutlined, PlusOutlined, UserOutlined, PhoneOutlined, CarOutlined } from '@ant-design/icons';
 import _service from '@netuno/service-client';
 import dayjs from 'dayjs';
+import useSession from '../../common/useSession';
 
 const { Header, Content, Sider } = Layout;
 
 const EstafetasContainer = () => {
-  const [loading, setLoading] = useState(true);
-  const [userName, setUserName] = useState('');
+  const { sessionLoading, userName, logout } = useSession(['operador']);
   const [couriers, setCouriers] = useState([]);
   const [vehicles, setVehicles] = useState([]);
   const [states, setStates] = useState([]);
@@ -46,59 +46,25 @@ const EstafetasContainer = () => {
   };
 
   useEffect(() => {
-    const token = localStorage.getItem('user_session_token');
-    if (!token) {
-      window.location.href = "/public/auth.html";
-      return;
-    }
+    if (sessionLoading) return;
 
+    loadData();
+    const token = localStorage.getItem('user_session_token');
+    // Load vehicles and states
     _service({
-      url: '/check-session',
-      method: 'POST',
+      url: '/estafetas/meta',
+      method: 'GET',
       headers: {
         'Authorization': 'Bearer ' + token
       },
-      success: ({ json }) => {
-        if (json.result === true) {
-          if (json.group !== 'operador') {
-            notification.error({
-              message: 'Não Autorizado',
-              description: 'Apenas operadores podem aceder à página de estafetas.'
-            });
-            window.location.href = "/public/home.html";
-          } else {
-            setUserName(json.primeiro_nome);
-            setLoading(false);
-            loadData();
-            
-            // Load vehicles and states
-            _service({
-              url: '/estafetas/meta',
-              method: 'GET',
-              headers: {
-                'Authorization': 'Bearer ' + token
-              },
-              success: ({ json: metaJson }) => {
-                if (metaJson.result === true) {
-                  setVehicles(metaJson.vehicles || []);
-                  setStates(metaJson.states || []);
-                }
-              }
-            });
-          }
-        } else {
-          logout();
+      success: ({ json: metaJson }) => {
+        if (metaJson.result === true) {
+          setVehicles(metaJson.vehicles || []);
+          setStates(metaJson.states || []);
         }
-      },
-      fail: () => {
-        notification.error({
-          message: 'Erro de Sessão',
-          description: 'Houve uma falha ao verificar a tua sessão.'
-        });
-        logout();
       }
     });
-  }, []);
+  }, [sessionLoading]);
 
   const handleFinish = (values) => {
     const token = localStorage.getItem('user_session_token');
@@ -138,11 +104,6 @@ const EstafetasContainer = () => {
         });
       }
     });
-  };
-
-  const logout = () => {
-    localStorage.removeItem('user_session_token');
-    window.location.href = "/public/auth.html";
   };
 
   const columns = [
@@ -188,7 +149,7 @@ const EstafetasContainer = () => {
     }
   ];
 
-  if (loading) {
+  if (sessionLoading) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', backgroundColor: '#f5f5f5' }}>
         <Spin size="large" tip="A verificar autorização..." />
@@ -281,7 +242,7 @@ const EstafetasContainer = () => {
                     <Input prefix={<UserOutlined style={{ color: '#aaa' }} />} placeholder="Ex: Carlos Santos" />
                   </Form.Item>
 
-                   <Form.Item
+                  <Form.Item
                     name="data_nascimento"
                     label="Data de Nascimento"
                     rules={[{ required: true, message: 'Insira a data de nascimento.' }]}

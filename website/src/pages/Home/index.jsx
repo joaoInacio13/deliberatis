@@ -12,13 +12,13 @@ import useLoadOrders from '../../common/useLoadOrders';
 import usePostalCode from '../../common/usePostalCode';
 import useConfirmMap from '../../common/useConfirmMap';
 import useCreateOrder from '../../common/useCreateOrder';
+import useSession from '../../common/useSession';
 
 const { Header, Content, Sider } = Layout;
 
 const HomeContainer = () => {
-  const { orders, loading, loadOrders, setLoading } = useLoadOrders();
-  const [userName, setUserName] = useState('');
-  const [userGroup, setUserGroup] = useState('cliente');
+  const { sessionLoading, userName, userGroup, logout } = useSession();
+  const { orders, loading, loadOrders } = useLoadOrders();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [form] = Form.useForm();
 
@@ -83,37 +83,10 @@ const HomeContainer = () => {
   });
 
   useEffect(() => {
+    if (sessionLoading) return;
     const token = localStorage.getItem('user_session_token');
-
-    if (!token) {
-      window.location.href = "/public/auth.html";
-      return;
-    }
-
-    _service({
-      url: '/check-session',
-      method: 'POST',
-      headers: {
-        'Authorization': 'Bearer ' + token
-      },
-      success: ({ json }) => {
-        if (json.result === true) {
-          setUserName(json.primeiro_nome);
-          setUserGroup(json.group || 'cliente');
-          loadOrders(token);
-        } else {
-          logout();
-        }
-      },
-      fail: () => {
-        notification.error({
-          message: 'Erro de Sessão',
-          description: 'Houve uma falha ao verificar a tua sessão.'
-        });
-        logout();
-      }
-    });
-  }, []);
+    loadOrders(token);
+  }, [sessionLoading]);
 
   const handleStatusChange = (orderUid, newStatus) => {
     const token = localStorage.getItem('user_session_token');
@@ -150,11 +123,6 @@ const HomeContainer = () => {
     });
   };
 
-  const logout = () => {
-    localStorage.removeItem('user_session_token');
-    window.location.href = "/public/auth.html";
-  };
-
   const handleOpenModal = () => {
     setIsModalOpen(true);
   };
@@ -169,10 +137,10 @@ const HomeContainer = () => {
     setIsModalOpen(false);
   };
 
-  if (loading) {
+  if (sessionLoading || loading) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', backgroundColor: '#f5f5f5' }}>
-        <Spin size="large" tip="A carregar sessão..." />
+        <Spin size="large" tip="A carregar..." />
       </div>
     );
   }
