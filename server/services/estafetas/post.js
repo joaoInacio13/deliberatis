@@ -96,6 +96,14 @@ try {
     throw new Error("Validation failed");
   }
 
+  // Generate random coordinates within Portugal mainland bounding box
+  const minLat = 36.95;
+  const maxLat = 42.15;
+  const minLng = -9.50;
+  const maxLng = -6.18;
+  const latitude = minLat + Math.random() * (maxLat - minLat);
+  const longitude = minLng + Math.random() * (maxLng - minLng);
+
   // Insert into database
   const insertMap = _val.map()
     .set("nome", nome)
@@ -104,6 +112,8 @@ try {
     .set("veiculo_id", veiculoId)
     .set("estado_id", estadoId)
     .set("matricula", matricula)
+    .set("latitude", latitude)
+    .set("longitude", longitude)
     .set("active", true);
 
   const newId = _db.insert("estafeta", insertMap);
