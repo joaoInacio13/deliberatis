@@ -1,19 +1,26 @@
 import { useState } from 'react';
 import { notification } from 'antd';
 import _service from '@netuno/service-client';
+import usePostalCode from './usePostalCode';
+import useMapLogic from './useMapLogic';
+import useConfirmMap from './useConfirmMap';
 
-export default function useUpdateOrder({
-  order,
-  form,
-  uid,
-  loadOrderDetails,
-  setPostalCodeStatus,
-  setPostalCodeErrorMsg
-}) {
+const useEditOrderFlow = ({ order, form, uid, loadOrderDetails }) => {
+  const [isMapModalOpen, setIsMapModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [hasConfirmedPin, setHasConfirmedPin] = useState(false);
   const [confirmedCoords, setConfirmedCoords] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+
+  const {
+    loadingPostalCode,
+    setLoadingPostalCode,
+    postalCodeStatus,
+    setPostalCodeStatus,
+    postalCodeErrorMsg,
+    setPostalCodeErrorMsg,
+    handlePostalCodeChange
+  } = usePostalCode(form);
 
   const handleOpenEditModal = () => {
     if (order) {
@@ -80,15 +87,63 @@ export default function useUpdateOrder({
     });
   };
 
+  const {
+    mapRef,
+    mapInstanceRef,
+    markerInstanceRef,
+    reverseGeocode
+  } = useMapLogic({
+    form,
+    isMapModalOpen,
+    setPostalCodeStatus,
+    setPostalCodeErrorMsg,
+    setLoadingPostalCode,
+    setHasConfirmedPin,
+    confirmedCoords
+  });
+
+  const {
+    searchingMap,
+    searchQuery,
+    setSearchQuery,
+    handleMapSearch,
+    handleConfirmLocation,
+    handleOpenMapModal
+  } = useConfirmMap({
+    form,
+    setIsMapModalOpen,
+    setHasConfirmedPin,
+    markerInstanceRef,
+    mapInstanceRef,
+    reverseGeocode,
+    setConfirmedCoords
+  });
+
   return {
     isEditModalOpen,
     setIsEditModalOpen,
-    hasConfirmedPin,
-    setHasConfirmedPin,
-    confirmedCoords,
-    setConfirmedCoords,
     submitting,
     handleOpenEditModal,
-    handleUpdateOrder
+    handleUpdateOrder,
+
+    // Postal code status
+    postalCodeStatus,
+    postalCodeErrorMsg,
+    loadingPostalCode,
+    handlePostalCodeChange,
+
+    // Map status
+    isMapModalOpen,
+    setIsMapModalOpen,
+    hasConfirmedPin,
+    mapRef,
+    searchingMap,
+    searchQuery,
+    setSearchQuery,
+    handleMapSearch,
+    handleConfirmLocation,
+    handleOpenMapModal
   };
-}
+};
+
+export default useEditOrderFlow;

@@ -1,109 +1,25 @@
-import React, { useEffect, useState } from 'react';
-import { Layout, Menu, Button, Spin, notification, Form, Input, Card, Row, Col, Select, Tag, Space, Table, DatePicker } from 'antd';
+import React from 'react';
+import { Layout, Menu, Button, Spin, Form, Input, Card, Row, Col, Select, Tag, Space, Table, DatePicker } from 'antd';
 import { LogoutOutlined, OrderedListOutlined, UserSwitchOutlined, PlusOutlined, UserOutlined, PhoneOutlined, CarOutlined } from '@ant-design/icons';
-import _service from '@netuno/service-client';
 import dayjs from 'dayjs';
 import useSession from '../../common/useSession';
+
+import useCouriers from '../../common/useCouriers';
 
 const { Header, Content, Sider } = Layout;
 
 const EstafetasContainer = () => {
   const { sessionLoading, userName, logout } = useSession(['operador']);
-  const [couriers, setCouriers] = useState([]);
-  const [vehicles, setVehicles] = useState([]);
-  const [states, setStates] = useState([]);
   const [form] = Form.useForm();
+
+  const {
+    couriers,
+    vehicles,
+    handleFinish
+  } = useCouriers(form, sessionLoading);
 
   const disabledDate = (current) => {
     return current && current > dayjs().subtract(18, 'year').endOf('day');
-  };
-
-  const loadData = () => {
-    const token = localStorage.getItem('user_session_token');
-    _service({
-      url: '/estafetas',
-      method: 'GET',
-      headers: {
-        'Authorization': 'Bearer ' + token
-      },
-      success: ({ json }) => {
-        if (json.result === true) {
-          setCouriers(json.couriers || []);
-        } else {
-          notification.error({
-            message: 'Erro',
-            description: json.error || 'Não foi possível carregar os estafetas.'
-          });
-        }
-      },
-      fail: () => {
-        notification.error({
-          message: 'Erro',
-          description: 'Houve uma falha ao carregar a lista de estafetas.'
-        });
-      }
-    });
-  };
-
-  useEffect(() => {
-    if (sessionLoading) return;
-
-    loadData();
-    const token = localStorage.getItem('user_session_token');
-    // Load vehicles and states
-    _service({
-      url: '/estafetas/meta',
-      method: 'GET',
-      headers: {
-        'Authorization': 'Bearer ' + token
-      },
-      success: ({ json: metaJson }) => {
-        if (metaJson.result === true) {
-          setVehicles(metaJson.vehicles || []);
-          setStates(metaJson.states || []);
-        }
-      }
-    });
-  }, [sessionLoading]);
-
-  const handleFinish = (values) => {
-    const token = localStorage.getItem('user_session_token');
-    const formattedValues = {
-      nome: values.nome,
-      telefone: values.telefone,
-      data_nascimento: values.data_nascimento ? values.data_nascimento.format('YYYY-MM-DD') : null,
-      veiculo_id: values.veiculo_id
-    };
-
-    _service({
-      url: '/estafetas',
-      method: 'POST',
-      headers: {
-        'Authorization': 'Bearer ' + token
-      },
-      data: formattedValues,
-      success: ({ json }) => {
-        if (json.result === true) {
-          notification.success({
-            message: 'Sucesso',
-            description: 'Estafeta adicionado com sucesso.'
-          });
-          form.resetFields();
-          loadData();
-        } else {
-          notification.error({
-            message: 'Erro',
-            description: json.error || 'Não foi possível registar o estafeta.'
-          });
-        }
-      },
-      fail: () => {
-        notification.error({
-          message: 'Erro',
-          description: 'Houve uma falha ao registar o estafeta.'
-        });
-      }
-    });
   };
 
   const columns = [

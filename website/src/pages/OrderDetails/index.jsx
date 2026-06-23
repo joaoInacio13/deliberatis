@@ -11,10 +11,7 @@ import OrderDecisionPanel from '../../components/OrderDetailsComponent/OrderDeci
 import EditOrderModal from '../../components/EditOrderModalComponent';
 import MapModal from '../../components/MapModalComponent';
 
-import usePostalCode from '../../common/usePostalCode';
-import useMapLogic from '../../common/useMapLogic';
-import useConfirmMap from '../../common/useConfirmMap';
-import useUpdateOrder from '../../common/useUpdateOrder';
+import useEditOrderFlow from '../../common/useEditOrderFlow';
 
 const { Header, Content } = Layout;
 
@@ -56,71 +53,34 @@ const OrderDetailsContainer = () => {
   } = useOrderDetails(uid, sessionLoading, isOperator);
 
   const [form] = Form.useForm();
-  const [isMapModalOpen, setIsMapModalOpen] = useState(false);
-
-  const {
-    loadingPostalCode,
-    setLoadingPostalCode,
-    postalCodeStatus,
-    setPostalCodeStatus,
-    postalCodeErrorMsg,
-    setPostalCodeErrorMsg,
-    handlePostalCodeChange
-  } = usePostalCode(form);
 
   const {
     isEditModalOpen,
     setIsEditModalOpen,
-    hasConfirmedPin,
-    setHasConfirmedPin,
-    confirmedCoords,
-    setConfirmedCoords,
     submitting,
     handleOpenEditModal,
-    handleUpdateOrder
-  } = useUpdateOrder({
-    order,
-    form,
-    uid,
-    loadOrderDetails: () => {
-      const token = localStorage.getItem('user_session_token');
-      loadOrderDetails(token, uid);
-    },
-    setPostalCodeStatus,
-    setPostalCodeErrorMsg
-  });
-
-  const {
-    mapRef: editMapRef,
-    mapInstanceRef: editMapInstanceRef,
-    markerInstanceRef: editMarkerInstanceRef,
-    reverseGeocode
-  } = useMapLogic({
-    form,
+    handleUpdateOrder,
+    postalCodeStatus,
+    postalCodeErrorMsg,
+    loadingPostalCode,
+    handlePostalCodeChange,
     isMapModalOpen,
-    setPostalCodeStatus,
-    setPostalCodeErrorMsg,
-    setLoadingPostalCode,
-    setHasConfirmedPin,
-    confirmedCoords
-  });
-
-  const {
+    setIsMapModalOpen,
+    hasConfirmedPin,
+    mapRef: editMapRef,
     searchingMap,
     searchQuery,
     setSearchQuery,
     handleMapSearch,
     handleConfirmLocation,
-    handleOpenMapModal,
-    locateAddressOnMap
-  } = useConfirmMap({
+    handleOpenMapModal
+  } = useEditOrderFlow({
+    order,
     form,
-    setIsMapModalOpen,
-    setHasConfirmedPin,
-    markerInstanceRef: editMarkerInstanceRef,
-    mapInstanceRef: editMapInstanceRef,
-    reverseGeocode,
-    setConfirmedCoords
+    uid,
+    loadOrderDetails: (token, orderUid) => {
+      loadOrderDetails(token, orderUid);
+    }
   });
 
   const mapRef = useRef(null);

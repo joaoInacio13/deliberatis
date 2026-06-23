@@ -1,85 +1,50 @@
-import React, { useEffect, useState } from 'react';
-import { Layout, Button, Spin, notification, Form, Menu } from 'antd';
+import React, { useEffect } from 'react';
+import { Layout, Button, Spin, Form, Menu } from 'antd';
 import { PlusOutlined, LogoutOutlined, OrderedListOutlined, UserSwitchOutlined } from '@ant-design/icons';
-import _service from '@netuno/service-client';
 
 import OrdersTableCliente from '../../components/OrdersTableClienteComponent';
 import OrdersTableOperador from '../../components/OrdersTableOperadorComponent';
 import CreateOrderModal from '../../components/CreateOrderModalComponent';
 import MapModal from '../../components/MapModalComponent';
-import useMapLogic from '../../common/useMapLogic';
 import useLoadOrders from '../../common/useLoadOrders';
-import usePostalCode from '../../common/usePostalCode';
-import useConfirmMap from '../../common/useConfirmMap';
-import useCreateOrder from '../../common/useCreateOrder';
+import useCreateOrderFlow from '../../common/useCreateOrderFlow';
 import useSession from '../../common/useSession';
 
 const { Header, Content, Sider } = Layout;
 
 const HomeContainer = () => {
   const { sessionLoading, userName, userGroup, logout } = useSession();
-  const { orders, loading, loadOrders } = useLoadOrders();
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const { orders, loading, loadOrders, handleStatusChange } = useLoadOrders();
   const [form] = Form.useForm();
 
-  const [isMapModalOpen, setIsMapModalOpen] = useState(false);
-  const [hasConfirmedPin, setHasConfirmedPin] = useState(false);
-  const [confirmedCoords, setConfirmedCoords] = useState(null);
-
   const {
-    loadingPostalCode,
-    setLoadingPostalCode,
-    postalCodeStatus,
-    setPostalCodeStatus,
-    postalCodeErrorMsg,
-    setPostalCodeErrorMsg,
-    handlePostalCodeChange
-  } = usePostalCode(form);
-
-  const {
-    mapRef,
-    mapInstanceRef,
-    markerInstanceRef,
-    reverseGeocode
-  } = useMapLogic({
-    form,
+    isModalOpen,
+    handleOpenModal,
+    handleCloseModal,
     isMapModalOpen,
-    setPostalCodeStatus,
-    setPostalCodeErrorMsg,
-    setLoadingPostalCode,
+    setIsMapModalOpen,
     setHasConfirmedPin,
-    confirmedCoords
-  });
-
-  const {
+    submitting,
+    handleCreateOrder,
+    executeSubmitOnConfirm,
+    
+    // Postal code status
+    postalCodeStatus,
+    postalCodeErrorMsg,
+    loadingPostalCode,
+    handlePostalCodeChange,
+    
+    // Map status
+    mapRef,
     searchingMap,
     searchQuery,
     setSearchQuery,
     handleMapSearch,
     handleConfirmLocation,
-    handleOpenMapModal,
-    locateAddressOnMap
-  } = useConfirmMap({
-    form,
-    setIsMapModalOpen,
-    setHasConfirmedPin,
-    markerInstanceRef,
-    mapInstanceRef,
-    reverseGeocode,
-    setConfirmedCoords
-  });
-
-  const {
-    submitting,
-    handleCreateOrder,
-    handleConfirmLocation: executeSubmitOnConfirm,
-    resetCreateOrderFlow
-  } = useCreateOrder({
-    loadOrders,
-    handleCloseModal: () => handleCloseModal(),
-    setIsMapModalOpen,
-    locateAddressOnMap,
-    setConfirmedCoords
+    handleOpenMapModal
+  } = useCreateOrderFlow(form, () => {
+    const token = localStorage.getItem('user_session_token');
+    loadOrders(token);
   });
 
   useEffect(() => {
@@ -87,55 +52,6 @@ const HomeContainer = () => {
     const token = localStorage.getItem('user_session_token');
     loadOrders(token);
   }, [sessionLoading]);
-
-  const handleStatusChange = (orderUid, newStatus) => {
-    const token = localStorage.getItem('user_session_token');
-    _service({
-      url: '/order/status',
-      method: 'POST',
-      headers: {
-        'Authorization': 'Bearer ' + token
-      },
-      data: {
-        uid: orderUid,
-        estado: newStatus
-      },
-      success: ({ json }) => {
-        if (json.result === true) {
-          notification.success({
-            message: 'Sucesso',
-            description: 'Estado da encomenda atualizado para ' + newStatus + '.'
-          });
-          loadOrders(token);
-        } else {
-          notification.error({
-            message: 'Erro',
-            description: json.error || 'Não foi possível atualizar o estado.'
-          });
-        }
-      },
-      fail: () => {
-        notification.error({
-          message: 'Erro de Rede',
-          description: 'Falha ao comunicar com o servidor.'
-        });
-      }
-    });
-  };
-
-  const handleOpenModal = () => {
-    setIsModalOpen(true);
-  };
-
-  const handleCloseModal = () => {
-    form.resetFields();
-    setPostalCodeStatus('none');
-    setPostalCodeErrorMsg('');
-    setLoadingPostalCode(false);
-    setHasConfirmedPin(false);
-    resetCreateOrderFlow();
-    setIsModalOpen(false);
-  };
 
   if (sessionLoading || loading) {
     return (

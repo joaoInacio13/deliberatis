@@ -36,11 +36,47 @@ export default function useLoadOrders() {
     });
   }, []);
 
+  const handleStatusChange = (orderUid, newStatus) => {
+    const token = localStorage.getItem('user_session_token');
+    _service({
+      url: '/order/status',
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + token
+      },
+      data: {
+        uid: orderUid,
+        estado: newStatus
+      },
+      success: ({ json }) => {
+        if (json.result === true) {
+          notification.success({
+            message: 'Sucesso',
+            description: 'Estado da encomenda atualizado para ' + newStatus + '.'
+          });
+          loadOrders(token);
+        } else {
+          notification.error({
+            message: 'Erro',
+            description: json.error || 'Não foi possível atualizar o estado.'
+          });
+        }
+      },
+      fail: () => {
+        notification.error({
+          message: 'Erro de Rede',
+          description: 'Falha ao comunicar com o servidor.'
+        });
+      }
+    });
+  };
+
   return {
     orders,
     setOrders,
     loading,
     setLoading,
-    loadOrders
+    loadOrders,
+    handleStatusChange
   };
 }
