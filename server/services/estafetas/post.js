@@ -96,15 +96,13 @@ try {
     throw new Error("Validation failed");
   }
 
-  // Generate random coordinates within Portugal mainland bounding box
-  const minLat = 36.95;
-  const maxLat = 42.15;
-  const minLng = -9.50;
-  const maxLng = -6.18;
+  const minLat = 37.3;
+  const maxLat = 41.8;
+  const minLng = -8.9;
+  const maxLng = -7.6;
   const latitude = minLat + Math.random() * (maxLat - minLat);
   const longitude = minLng + Math.random() * (maxLng - minLng);
 
-  // Insert into database
   const insertMap = _val.map()
     .set("nome", nome)
     .set("telefone", telefone)
