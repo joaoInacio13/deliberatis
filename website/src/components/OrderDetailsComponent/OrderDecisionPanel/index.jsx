@@ -1,8 +1,15 @@
 import React, { useState } from 'react';
 import { Card, Row, Col, Select, Button, Input, notification } from 'antd';
 
-const OrderDecisionPanel = ({ couriers, submitting, onDecision }) => {
-  const [selectedCourierId, setSelectedCourierId] = useState(null);
+const OrderDecisionPanel = ({
+  couriers,
+  submitting,
+  onDecision,
+  onCourierSelect,
+  onCancel,
+  selectedCourierId,
+  onChangeCourierId
+}) => {
   const [rejectionReason, setRejectionReason] = useState('');
   const [isRejectedAction, setIsRejectedAction] = useState(false);
 
@@ -50,7 +57,14 @@ const OrderDecisionPanel = ({ couriers, submitting, onDecision }) => {
             showSearch
             filterOption={(input, option) => (option?.children ?? '').toLowerCase().includes(input.toLowerCase())}
             value={selectedCourierId}
-            onChange={(val) => setSelectedCourierId(val)}
+            onChange={(val) => {
+              if (onChangeCourierId) {
+                onChangeCourierId(val);
+              }
+              if (onCourierSelect) {
+                onCourierSelect(val);
+              }
+            }}
             disabled={submitting || isRejectedAction}
           >
             {couriers
@@ -85,6 +99,16 @@ const OrderDecisionPanel = ({ couriers, submitting, onDecision }) => {
             >
               {isRejectedAction ? 'Confirmar Rejeição' : 'Rejeitar Encomenda'}
             </Button>
+            {onCancel && (
+              <Button
+                size="large"
+                disabled={submitting}
+                onClick={onCancel}
+                style={{ borderRadius: '6px', fontWeight: '600' }}
+              >
+                Cancelar
+              </Button>
+            )}
           </div>
         </Col>
 

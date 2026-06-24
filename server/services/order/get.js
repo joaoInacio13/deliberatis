@@ -131,7 +131,6 @@ try {
         let latitude = row.getDouble("latitude");
         let longitude = row.getDouble("longitude");
 
-        // Fallback para Nominatim se os valores forem nulos, inválidos ou iguais a 0.0
         if (!latitude || !longitude || (latitude === 0.0 && longitude === 0.0)) {
           const fullAddr = ruaVal + ", " + cpVal + ", " + cidadeVal + ", Portugal";
           let coords = geocode(fullAddr);

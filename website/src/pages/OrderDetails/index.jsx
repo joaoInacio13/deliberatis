@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Layout, Button, Spin, Row, Col, Form } from 'antd';
+import { Layout, Button, Spin, Row, Col, Form, Card, Tag } from 'antd';
 import { ArrowLeftOutlined, EditOutlined } from '@ant-design/icons';
 import useSession from '../../common/useSession';
 import useOrderDetails from '../../common/useOrderDetails';
@@ -26,6 +26,23 @@ const formatDate = (dateStr) => {
     }
   }
   return dateStr;
+};
+
+
+const formatDuration = (totalMinutes) => {
+  const roundedMin = Math.round(totalMinutes);
+  if (roundedMin < 1) {
+    return "Menos de 1 min";
+  }
+  if (roundedMin < 60) {
+    return `${roundedMin} min`;
+  }
+  const hours = Math.floor(roundedMin / 60);
+  const remainingMinutes = roundedMin % 60;
+  if (remainingMinutes === 0) {
+    return `${hours}h`;
+  }
+  return `${hours}h ${remainingMinutes}min`;
 };
 
 
@@ -83,9 +100,96 @@ const OrderDetailsContainer = () => {
     }
   });
 
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [selectedCourier, setSelectedCourier] = useState(null);
+  const [routeStats, setRouteStats] = useState(null);
+  const [fastestCourier, setFastestCourier] = useState(null);
+  const [calculatingFastest, setCalculatingFastest] = useState(false);
+
+  // Effect to calculate the fastest available courier using parallel routing lookups
+  useEffect(() => {
+    if (!isProcessing || !order || !availableCouriers || availableCouriers.length === 0) {
+      setFastestCourier(null);
+      return;
+    }
+
+    const available = availableCouriers.filter(c => c.estado === 'Disponível' && c.latitude && c.longitude);
+    if (available.length === 0) {
+      setFastestCourier(null);
+      return;
+    }
+
+    setCalculatingFastest(true);
+
+    const promises = available.map(courier => {
+      const url = `https://router.project-osrm.org/route/v1/driving/${courier.longitude},${courier.latitude};${order.longitude},${order.latitude}?overview=false`;
+      return fetch(url)
+        .then(res => res.json())
+        .then(data => {
+          let durationMin = 0;
+          if (data.code === 'Ok' && data.routes && data.routes.length > 0) {
+            durationMin = data.routes[0].duration / 60;
+          } else {
+            // Fallback straight line distance using simple Haversine formula
+            const R = 6371;
+            const dLat = (order.latitude - courier.latitude) * Math.PI / 180;
+            const dLng = (order.longitude - courier.longitude) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                      Math.cos(courier.latitude * Math.PI / 180) * Math.cos(order.latitude * Math.PI / 180) *
+                      Math.sin(dLng/2) * Math.sin(dLng/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            const distKm = R * c;
+            const speed = courier.velocidade || 50;
+            durationMin = (distKm / speed) * 60;
+          }
+          return { courier, durationMin };
+        })
+        .catch(err => {
+          console.error("OSRM query failed for courier:", courier.nome, err);
+          // Fallback straight line distance using simple Haversine formula
+          const R = 6371;
+          const dLat = (order.latitude - courier.latitude) * Math.PI / 180;
+          const dLng = (order.longitude - courier.longitude) * Math.PI / 180;
+          const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                    Math.cos(courier.latitude * Math.PI / 180) * Math.cos(order.latitude * Math.PI / 180) *
+                    Math.sin(dLng/2) * Math.sin(dLng/2);
+          const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+          const distKm = R * c;
+          const speed = courier.velocidade || 50;
+          durationMin = (distKm / speed) * 60;
+          return { courier, durationMin };
+        });
+    });
+
+    Promise.all(promises)
+      .then(results => {
+        // Sort by duration ascending
+        results.sort((a, b) => a.durationMin - b.durationMin);
+        if (results.length > 0) {
+          setFastestCourier({
+            courier: results[0].courier,
+            duration: formatDuration(results[0].durationMin)
+          });
+        }
+      })
+      .catch(e => {
+        console.error("Promise.all error in fastest courier calculation:", e);
+      })
+      .finally(() => {
+        setCalculatingFastest(false);
+      });
+
+  }, [isProcessing, order, availableCouriers]);
+
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const markerInstanceRef = useRef(null);
+
+  const procMapRef = useRef(null);
+  const procMapInstanceRef = useRef(null);
+  const procOrderMarkerRef = useRef(null);
+  const procCourierMarkerRef = useRef(null);
+  const procRouteLineRef = useRef(null);
 
   useEffect(() => {
     return () => {
@@ -93,11 +197,24 @@ const OrderDetailsContainer = () => {
         mapInstanceRef.current.remove();
         mapInstanceRef.current = null;
       }
+      if (procMapInstanceRef.current) {
+        procMapInstanceRef.current.remove();
+        procMapInstanceRef.current = null;
+      }
     };
   }, []);
 
+  // Clean up read-only map instance when switching to processing mode
   useEffect(() => {
-    if (order && order.latitude && order.longitude) {
+    if (isProcessing && mapInstanceRef.current) {
+      mapInstanceRef.current.remove();
+      mapInstanceRef.current = null;
+      markerInstanceRef.current = null;
+    }
+  }, [isProcessing]);
+
+  useEffect(() => {
+    if (order && order.latitude && order.longitude && !isProcessing) {
       if (mapRef.current) {
         if (!mapInstanceRef.current) {
           initMap(order.latitude, order.longitude);
@@ -113,7 +230,178 @@ const OrderDetailsContainer = () => {
         }
       }
     }
-  }, [order]);
+  }, [order, isProcessing]);
+
+  // Effect to initialize processing map
+  useEffect(() => {
+    if (isProcessing && order && procMapRef.current) {
+      const L = window.L;
+      if (!L) return;
+
+      if (!procMapInstanceRef.current) {
+        const map = L.map(procMapRef.current, {
+          zoomControl: true,
+          scrollWheelZoom: true
+        }).setView([order.latitude, order.longitude], 13);
+        procMapInstanceRef.current = map;
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        const blueIcon = new L.Icon({
+          iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
+          shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+          iconSize: [25, 41],
+          iconAnchor: [12, 41],
+          popupAnchor: [1, -34],
+          shadowSize: [41, 41]
+        });
+
+        procOrderMarkerRef.current = L.marker([order.latitude, order.longitude], { icon: blueIcon }).addTo(map)
+          .bindPopup('Morada de Entrega')
+          .openPopup();
+      } else {
+        const latlng = L.latLng(order.latitude, order.longitude);
+        if (procOrderMarkerRef.current) {
+          procOrderMarkerRef.current.setLatLng(latlng);
+        }
+      }
+    }
+
+    return () => {
+      if (!isProcessing && procMapInstanceRef.current) {
+        if (procRouteLineRef.current) {
+          procMapInstanceRef.current.removeLayer(procRouteLineRef.current);
+          procRouteLineRef.current = null;
+        }
+        procMapInstanceRef.current.remove();
+        procMapInstanceRef.current = null;
+        procOrderMarkerRef.current = null;
+        procCourierMarkerRef.current = null;
+      }
+    };
+  }, [isProcessing, order]);
+
+  // Effect to update courier marker and draw route on processing map
+  useEffect(() => {
+    const L = window.L;
+    if (!L || !procMapInstanceRef.current || !order) return;
+
+    // Clear old route and stats if exists
+    if (procRouteLineRef.current) {
+      procMapInstanceRef.current.removeLayer(procRouteLineRef.current);
+      procRouteLineRef.current = null;
+    }
+    setRouteStats(null);
+
+    if (selectedCourier && selectedCourier.latitude && selectedCourier.longitude) {
+      const courierLatLng = [selectedCourier.latitude, selectedCourier.longitude];
+      
+      const redIcon = new L.Icon({
+        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
+        popupAnchor: [1, -34],
+        shadowSize: [41, 41]
+      });
+
+      if (!procCourierMarkerRef.current) {
+        procCourierMarkerRef.current = L.marker(courierLatLng, { icon: redIcon }).addTo(procMapInstanceRef.current)
+          .bindPopup(`Estafeta: ${selectedCourier.nome}`).openPopup();
+      } else {
+        procCourierMarkerRef.current.setLatLng(courierLatLng);
+        procCourierMarkerRef.current.getPopup().setContent(`Estafeta: ${selectedCourier.nome}`).openPopup();
+      }
+
+      // Fetch route from OSRM
+      const url = `https://router.project-osrm.org/route/v1/driving/${selectedCourier.longitude},${selectedCourier.latitude};${order.longitude},${order.latitude}?overview=full&geometries=geojson`;
+      
+      fetch(url)
+        .then(res => res.json())
+        .then(data => {
+          if (data.code === 'Ok' && data.routes && data.routes.length > 0) {
+            const coords = data.routes[0].geometry.coordinates;
+            const latlngs = coords.map(c => [c[1], c[0]]);
+            
+            // Calculate stats
+            const distMeters = data.routes[0].distance;
+            const distKm = distMeters / 1000;
+            // Use OSRM's simulated duration (in seconds) converted to minutes
+            const durationMin = data.routes[0].duration / 60;
+            
+            // Calculate ETA
+            const now = new Date();
+            now.setSeconds(now.getSeconds() + (durationMin * 60));
+            const etaTime = now.toTimeString().substring(0, 5);
+
+            setRouteStats({
+              distance: distKm.toFixed(2),
+              duration: formatDuration(durationMin),
+              eta: etaTime
+            });
+
+            if (procMapInstanceRef.current) {
+              if (procRouteLineRef.current) {
+                procMapInstanceRef.current.removeLayer(procRouteLineRef.current);
+              }
+              procRouteLineRef.current = L.polyline(latlngs, {
+                color: '#5b5ce1',
+                weight: 5,
+                opacity: 0.7,
+                dashArray: '10, 10'
+              }).addTo(procMapInstanceRef.current);
+
+              procMapInstanceRef.current.fitBounds(procRouteLineRef.current.getBounds(), { padding: [60, 60] });
+            }
+          } else {
+            // Fallback straight-line
+            const bounds = L.latLngBounds([
+              [order.latitude, order.longitude],
+              courierLatLng
+            ]);
+            procMapInstanceRef.current.fitBounds(bounds, { padding: [60, 60] });
+          }
+        })
+        .catch(err => {
+          console.error("Failed to fetch OSRM route:", err);
+          // Fallback straight-line distance using simple Haversine formula
+          const R = 6371; // Earth's radius in km
+          const dLat = (order.latitude - selectedCourier.latitude) * Math.PI / 180;
+          const dLng = (order.longitude - selectedCourier.longitude) * Math.PI / 180;
+          const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                    Math.cos(selectedCourier.latitude * Math.PI / 180) * Math.cos(order.latitude * Math.PI / 180) *
+                    Math.sin(dLng/2) * Math.sin(dLng/2);
+          const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+          const distKm = R * c;
+          const speed = selectedCourier.velocidade || 50;
+          const durationMin = (distKm / speed) * 60;
+          
+          const now = new Date();
+          now.setSeconds(now.getSeconds() + (durationMin * 60));
+          const etaTime = now.toTimeString().substring(0, 5);
+
+          setRouteStats({
+            distance: distKm.toFixed(2) + " (Linear)",
+            duration: formatDuration(durationMin),
+            eta: etaTime
+          });
+
+          const bounds = L.latLngBounds([
+            [order.latitude, order.longitude],
+            courierLatLng
+          ]);
+          procMapInstanceRef.current.fitBounds(bounds, { padding: [60, 60] });
+        });
+    } else {
+      if (procCourierMarkerRef.current) {
+        procMapInstanceRef.current.removeLayer(procCourierMarkerRef.current);
+        procCourierMarkerRef.current = null;
+      }
+      procMapInstanceRef.current.setView([order.latitude, order.longitude], 13);
+    }
+  }, [selectedCourier, order]);
 
   const initMap = (lat, lng) => {
     const L = window.L;
@@ -121,7 +409,7 @@ const OrderDetailsContainer = () => {
 
     const map = L.map(mapRef.current, {
       zoomControl: true,
-      scrollWheelZoom: false
+      scrollWheelZoom: true
     }).setView([lat, lng], 15);
     mapInstanceRef.current = map;
 
@@ -207,31 +495,185 @@ const OrderDetailsContainer = () => {
               Editar
             </Button>
           )}
+          {order && isOperator && order.estado === 'Pendente' && !isProcessing && (
+            <Button 
+              type="primary"
+              size="large"
+              icon={<EditOutlined />}
+              onClick={() => setIsProcessing(true)}
+              style={{ borderRadius: '6px', position: 'absolute', right: 0, backgroundColor: '#5b5ce1', borderColor: '#5b5ce1' }}
+            >
+              Processar Encomenda
+            </Button>
+          )}
+          {order && isOperator && order.estado === 'Pendente' && isProcessing && (
+            <Button 
+              type="primary"
+              size="large"
+              onClick={() => {
+                setIsProcessing(false);
+                setSelectedCourier(null);
+              }}
+              style={{ borderRadius: '6px', position: 'absolute', right: 0, backgroundColor: '#5b5ce1', borderColor: '#5b5ce1' }}
+            >
+              Voltar aos Detalhes
+            </Button>
+          )}
         </div>
 
         {order && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
-            {/* Timeline do Estado */}
-            <OrderTimeline statusIndex={statusIndex} statusText={order.estado} rejectionReason={order.motivo_rejeicao} />
+            {isProcessing ? (
+              <>
+                <Row gutter={[24, 24]}>
+                  <Col xs={24} lg={16}>
+                    <Card 
+                      title={<span style={{ fontWeight: '700', color: '#333' }}>Mapa de Atribuição</span>}
+                      bordered={false}
+                      style={{ borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.04)', display: 'flex', flexDirection: 'column', height: '100%' }}
+                      bodyStyle={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '24px' }}
+                    >
+                      <div 
+                        ref={procMapRef} 
+                        style={{ 
+                          flex: 1,
+                          minHeight: '450px', 
+                          width: '100%', 
+                          borderRadius: '8px', 
+                          overflow: 'hidden', 
+                          border: '1px solid #e0e0e0',
+                          zIndex: 1
+                        }} 
+                      />
+                    </Card>
+                  </Col>
 
-            {/* Informações e Mapa */}
-            <Row gutter={[32, 32]}>
-              <Col xs={24} md={12}>
-                <OrderDetailsInfo order={order} formatDate={formatDate} />
-              </Col>
+                  <Col xs={24} lg={8}>
+                    <Card 
+                      title={<span style={{ fontWeight: '700', color: '#333' }}>Estatísticas da Rota</span>}
+                      bordered={false}
+                      style={{ borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.04)', display: 'flex', flexDirection: 'column', height: '100%' }}
+                      bodyStyle={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}
+                    >
+                      <div style={{ flex: 1 }}>
+                        {selectedCourier ? (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                            <div>
+                              <span style={{ color: '#888', display: 'block', fontSize: '12px', fontWeight: '500' }}>ESTAFETA</span>
+                              <span style={{ fontSize: '18px', fontWeight: '600', color: '#333' }}>{selectedCourier.nome}</span>
+                            </div>
+                            <Row gutter={16}>
+                              <Col span={12}>
+                                <span style={{ color: '#888', display: 'block', fontSize: '12px', fontWeight: '500' }}>VEÍCULO</span>
+                                <span style={{ fontSize: '15px', fontWeight: '600', color: '#555' }}>{selectedCourier.veiculo}</span>
+                              </Col>
+                              <Col span={12}>
+                                <span style={{ color: '#888', display: 'block', fontSize: '12px', fontWeight: '500' }}>MATRÍCULA</span>
+                                <div style={{ marginTop: '4px' }}>
+                                  <Tag color="blue">{selectedCourier.matricula}</Tag>
+                                </div>
+                              </Col>
+                            </Row>
+                            <div>
+                              <span style={{ color: '#888', display: 'block', fontSize: '12px', fontWeight: '500' }}>VELOCIDADE DO VEÍCULO</span>
+                              <span style={{ fontSize: '16px', fontWeight: '600', color: '#555' }}>{selectedCourier.velocidade || 'N/A'} km/h</span>
+                            </div>
+                            {routeStats ? (
+                              <>
+                                <hr style={{ border: 'none', borderTop: '1px solid #f0f0f0', margin: '8px 0' }} />
+                                <div>
+                                  <span style={{ color: '#888', display: 'block', fontSize: '12px', fontWeight: '500' }}>DISTÂNCIA DE VIAGEM</span>
+                                  <span style={{ fontSize: '20px', fontWeight: '700', color: '#5b5ce1' }}>{routeStats.distance} km</span>
+                                </div>
+                                <Row gutter={16}>
+                                  <Col span={12}>
+                                    <span style={{ color: '#888', display: 'block', fontSize: '12px', fontWeight: '500' }}>TEMPO PREVISTO</span>
+                                    <span style={{ fontSize: '18px', fontWeight: '700', color: '#2eb82e' }}>{routeStats.duration}</span>
+                                  </Col>
+                                  <Col span={12}>
+                                    <span style={{ color: '#888', display: 'block', fontSize: '12px', fontWeight: '500' }}>PREVISÃO DE CHEGADA</span>
+                                    <span style={{ fontSize: '18px', fontWeight: '700', color: '#ff9900' }}>{routeStats.eta}</span>
+                                  </Col>
+                                </Row>
+                              </>
+                            ) : (
+                              <div style={{ textAlign: 'center', padding: '24px 0', color: '#999' }}>
+                                A calcular rota...
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <div style={{ textAlign: 'center', padding: '48px 16px', color: '#999' }}>
+                            Selecione um estafeta no painel inferior para visualizar as estatísticas da rota.
+                          </div>
+                        )}
+                      </div>
 
-              <Col xs={24} md={12}>
-                <OrderDetailsMap order={order} mapRef={mapRef} />
-              </Col>
-            </Row>
+                      {/* Recommendation widget */}
+                      <div style={{ marginTop: '24px' }}>
+                        <div style={{ background: '#f9f9f9', padding: '16px', borderRadius: '8px', border: '1px dashed #d9d9d9' }}>
+                          <span style={{ color: '#888', display: 'block', fontSize: '11px', fontWeight: '600', marginBottom: '8px', letterSpacing: '0.5px' }}>SUGESTÃO DE ATRIBUIÇÃO</span>
+                          {calculatingFastest ? (
+                            <span style={{ fontSize: '13px', color: '#666' }}>A calcular a rota mais rápida...</span>
+                          ) : fastestCourier ? (
+                            <div>
+                              <p style={{ fontSize: '13px', margin: '0 0 12px 0', color: '#333', lineHeight: '1.4' }}>
+                                O estafeta disponível mais rápido é o <strong>{fastestCourier.courier.nome}</strong>, com uma viagem estimada em <strong>{fastestCourier.duration}</strong>.
+                              </p>
+                              {selectedCourier?.id !== fastestCourier.courier.id && (
+                                <Button 
+                                  type="primary"
+                                  size="small"
+                                  onClick={() => {
+                                    setSelectedCourier(fastestCourier.courier);
+                                  }}
+                                  style={{ backgroundColor: '#5b5ce1', borderColor: '#5b5ce1', borderRadius: '4px', fontSize: '12px', fontWeight: '600' }}
+                                >
+                                  Atribuir {fastestCourier.courier.nome.split(' ')[0]}
+                                </Button>
+                              )}
+                              {selectedCourier?.id === fastestCourier.courier.id && (
+                                <span style={{ fontSize: '12px', color: '#2eb82e', fontWeight: '600' }}>✓ Estafeta mais rápido selecionado</span>
+                              )}
+                            </div>
+                          ) : (
+                            <span style={{ fontSize: '13px', color: '#999' }}>Sem estafetas disponíveis de momento.</span>
+                          )}
+                        </div>
+                      </div>
+                    </Card>
+                  </Col>
+                </Row>
 
-            {/* Operator Assignment Panel */}
-            {isOperator && order.estado === 'Pendente' && (
-              <OrderDecisionPanel
-                couriers={availableCouriers}
-                submitting={decisionSubmitting}
-                onDecision={(status, estafetaId, reason) => handleOperatorDecision(status, estafetaId, reason)}
-              />
+                <OrderDecisionPanel
+                  couriers={availableCouriers}
+                  submitting={decisionSubmitting}
+                  selectedCourierId={selectedCourier ? selectedCourier.id : null}
+                  onChangeCourierId={(id) => {
+                    const courier = availableCouriers.find(c => c.id === id);
+                    setSelectedCourier(courier || null);
+                  }}
+                  onDecision={(status, estafetaId, reason) => {
+                    handleOperatorDecision(status, estafetaId, reason);
+                  }}
+                />
+              </>
+            ) : (
+              <>
+                {/* Timeline do Estado */}
+                <OrderTimeline statusIndex={statusIndex} statusText={order.estado} rejectionReason={order.motivo_rejeicao} />
+
+                {/* Informações e Mapa */}
+                <Row gutter={[32, 32]}>
+                  <Col xs={24} md={12}>
+                    <OrderDetailsInfo order={order} formatDate={formatDate} />
+                  </Col>
+
+                  <Col xs={24} md={12}>
+                    <OrderDetailsMap order={order} mapRef={mapRef} />
+                  </Col>
+                </Row>
+              </>
             )}
           </div>
         )}
