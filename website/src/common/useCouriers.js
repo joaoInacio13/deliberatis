@@ -99,12 +99,48 @@ const useCouriers = (form, sessionLoading) => {
     });
   };
 
+  const handleUpdateStatus = (id, newStatus) => {
+    const token = localStorage.getItem('user_session_token');
+    _service({
+      url: '/estafetas/update-status',
+      method: 'PUT',
+      headers: {
+        'Authorization': 'Bearer ' + token
+      },
+      data: {
+        id: id,
+        estado: newStatus
+      },
+      success: ({ json }) => {
+        if (json.result === true) {
+          notification.success({
+            message: 'Sucesso',
+            description: 'Estado do estafeta atualizado com sucesso.'
+          });
+          loadData();
+        } else {
+          notification.error({
+            message: 'Erro',
+            description: json.error || 'Não foi possível atualizar o estado do estafeta.'
+          });
+        }
+      },
+      fail: () => {
+        notification.error({
+          message: 'Erro de Rede',
+          description: 'Houve um problema de ligação ao servidor.'
+        });
+      }
+    });
+  };
+
   return {
     couriers,
     vehicles,
     states,
     loading,
     handleFinish,
+    handleUpdateStatus,
     loadData
   };
 };

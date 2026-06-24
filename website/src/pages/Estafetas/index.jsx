@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Layout, Menu, Button, Spin, Form, Input, Card, Row, Col, Select, Tag, Space, Table, DatePicker } from 'antd';
 import { LogoutOutlined, OrderedListOutlined, UserSwitchOutlined, PlusOutlined, UserOutlined, PhoneOutlined, CarOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
@@ -11,22 +11,29 @@ const { Header, Content, Sider } = Layout;
 const EstafetasContainer = () => {
   const { sessionLoading, userName, logout } = useSession(['operador']);
   const [form] = Form.useForm();
+  const [searchText, setSearchText] = useState('');
 
   const {
     couriers,
     vehicles,
-    handleFinish
+    handleFinish,
+    handleUpdateStatus
   } = useCouriers(form, sessionLoading);
 
   const disabledDate = (current) => {
     return current && current > dayjs().subtract(18, 'year').endOf('day');
   };
 
+  const filteredCouriers = couriers.filter(c => 
+    c.nome.toLowerCase().includes(searchText.toLowerCase())
+  );
+
   const columns = [
     {
       title: 'Nome',
       dataIndex: 'nome',
       key: 'nome',
+      sorter: (a, b) => a.nome.localeCompare(b.nome),
       render: (text) => <span style={{ fontWeight: '600', color: '#333' }}>{text}</span>
     },
     {
@@ -55,11 +62,28 @@ const EstafetasContainer = () => {
       title: 'Estado',
       dataIndex: 'estado',
       key: 'estado',
-      render: (estado) => {
+      render: (estado, record) => {
+        if (estado === 'Disponível' || estado === 'Indisponível') {
+          return (
+            <Select
+              value={estado}
+              style={{ width: 130 }}
+              onChange={(val) => handleUpdateStatus(record.id, val)}
+              bordered={false}
+              dropdownMatchSelectWidth={false}
+            >
+              <Select.Option value="Disponível">
+                <Tag color="success" style={{ fontWeight: 'bold', margin: 0, cursor: 'pointer' }}>Disponível</Tag>
+              </Select.Option>
+              <Select.Option value="Indisponível">
+                <Tag color="error" style={{ fontWeight: 'bold', margin: 0, cursor: 'pointer' }}>Indisponível</Tag>
+              </Select.Option>
+            </Select>
+          );
+        }
+        
         let color = 'default';
-        if (estado === 'Disponível') color = 'success';
-        else if (estado === 'Em Entrega' || estado === 'Em Trânsito') color = 'processing';
-        else if (estado === 'Indisponível') color = 'error';
+        if (estado === 'Em Entrega' || estado === 'Em Trânsito') color = 'processing';
         return <Tag color={color} style={{ fontWeight: 'bold' }}>{estado}</Tag>;
       }
     }
@@ -220,8 +244,16 @@ const EstafetasContainer = () => {
                 bordered={false} 
                 style={{ borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.04)' }}
               >
+                <div style={{ marginBottom: '16px' }}>
+                  <Input.Search
+                    placeholder="Pesquisar estafeta por nome..."
+                    allowClear
+                    onChange={(e) => setSearchText(e.target.value)}
+                    style={{ width: '100%', maxWidth: '350px' }}
+                  />
+                </div>
                 <Table
-                  dataSource={couriers}
+                  dataSource={filteredCouriers}
                   columns={columns}
                   rowKey="id"
                   pagination={{ pageSize: 5 }}
