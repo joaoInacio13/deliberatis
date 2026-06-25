@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Layout, Menu, Button, Spin, Form, Input, Card, Row, Col, Select, Tag, Space, Table, DatePicker } from 'antd';
 import { LogoutOutlined, OrderedListOutlined, UserSwitchOutlined, PlusOutlined, UserOutlined, PhoneOutlined, CarOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
@@ -20,6 +20,36 @@ const EstafetasContainer = () => {
     handleUpdateStatus
   } = useCouriers(form, sessionLoading);
 
+  const mapRef = useRef(null);
+  const mapInstanceRef = useRef(null);
+  const markersRef = useRef({});
+
+  // Initialize map
+  useEffect(() => {
+    const L = window.L;
+    if (!L || sessionLoading || !mapRef.current) return;
+
+    if (!mapInstanceRef.current) {
+      const map = L.map(mapRef.current, {
+        zoomControl: true,
+        scrollWheelZoom: true
+      }).setView([39.6, -8.0], 7);
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+      }).addTo(map);
+
+      mapInstanceRef.current = map;
+    }
+
+    return () => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
+      }
+    };
+  }, [sessionLoading]);
+
   const disabledDate = (current) => {
     return current && current > dayjs().subtract(18, 'year').endOf('day');
   };
@@ -27,6 +57,77 @@ const EstafetasContainer = () => {
   const filteredCouriers = couriers.filter(c => 
     c.nome.toLowerCase().includes(searchText.toLowerCase())
   );
+
+  // Sync markers
+  useEffect(() => {
+    const L = window.L;
+    if (!L || !mapInstanceRef.current) return;
+
+    // Remove markers that are no longer in filteredCouriers
+    const currentIds = new Set(filteredCouriers.map(c => c.id));
+    Object.keys(markersRef.current).forEach(idStr => {
+      const id = parseInt(idStr, 10);
+      if (!currentIds.has(id)) {
+        mapInstanceRef.current.removeLayer(markersRef.current[id]);
+        delete markersRef.current[id];
+      }
+    });
+
+    // Add or update markers
+    filteredCouriers.forEach(courier => {
+      if (!courier.latitude || !courier.longitude) return;
+
+      // Select icon color based on status
+      let color = 'blue';
+      if (courier.estado === 'Disponível') {
+        color = 'green';
+      } else if (courier.estado === 'Indisponível') {
+        color = 'red';
+      } else if (courier.estado === 'Em Entrega' || courier.estado === 'Em Trânsito') {
+        color = 'orange';
+      }
+
+      const icon = new L.Icon({
+        iconUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-${color}.png`,
+        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
+        popupAnchor: [1, -34],
+        shadowSize: [41, 41]
+      });
+
+      const popupContent = `
+        <div style="font-family: sans-serif; font-size: 13px; line-height: 1.4;">
+          <strong style="font-size: 14px; color: #333;">${courier.nome}</strong><br/>
+          <b>Telemóvel:</b> ${courier.telefone || 'N/A'}<br/>
+          <b>Veículo:</b> ${courier.veiculo || 'N/A'} (${courier.matricula || 'N/A'})<br/>
+          <b>Estado:</b> <span style="font-weight: bold; color: ${
+            courier.estado === 'Disponível' ? '#52c41a' : courier.estado === 'Indisponível' ? '#f5222d' : '#1890ff'
+          }">${courier.estado}</span>
+        </div>
+      `;
+
+      if (markersRef.current[courier.id]) {
+        const marker = markersRef.current[courier.id];
+        marker.setLatLng([courier.latitude, courier.longitude]);
+        marker.setIcon(icon);
+        marker.getPopup().setContent(popupContent);
+      } else {
+        const marker = L.marker([courier.latitude, courier.longitude], { icon })
+          .addTo(mapInstanceRef.current)
+          .bindPopup(popupContent);
+        markersRef.current[courier.id] = marker;
+      }
+    });
+
+    // Fit bounds
+    const validCoords = filteredCouriers
+      .filter(c => c.latitude && c.longitude)
+      .map(c => [c.latitude, c.longitude]);
+    if (validCoords.length > 0) {
+      mapInstanceRef.current.fitBounds(validCoords, { padding: [50, 50], maxZoom: 13 });
+    }
+  }, [filteredCouriers]);
 
   const columns = [
     {
@@ -132,7 +233,11 @@ const EstafetasContainer = () => {
           theme="light" 
           style={{ 
             boxShadow: '2px 0 8px rgba(0,0,0,0.02)',
-            borderRight: '1px solid #f0f0f0'
+            borderRight: '1px solid #f0f0f0',
+            position: 'sticky',
+            top: '64px',
+            height: 'calc(100vh - 64px)',
+            overflowY: 'auto'
           }}
         >
           <Menu
@@ -162,11 +267,12 @@ const EstafetasContainer = () => {
 
           <Row gutter={[24, 24]}>
             {/* Form para Adicionar Novo Estafeta */}
-            <Col xs={24} lg={8}>
+            <Col xs={24} lg={8} style={{ display: 'flex', flexDirection: 'column' }}>
               <Card 
                 title={<span style={{ fontWeight: '700', color: '#333' }}>Registar Novo Estafeta</span>} 
                 bordered={false} 
-                style={{ borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.04)' }}
+                style={{ borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.04)', height: '100%', display: 'flex', flexDirection: 'column' }}
+                bodyStyle={{ flex: 1 }}
               >
                 <Form
                   form={form}
@@ -238,11 +344,12 @@ const EstafetasContainer = () => {
             </Col>
 
             {/* Lista de Estafetas Existentes */}
-            <Col xs={24} lg={16}>
+            <Col xs={24} lg={16} style={{ display: 'flex', flexDirection: 'column' }}>
               <Card 
                 title={<span style={{ fontWeight: '700', color: '#333' }}>Estafetas Registados</span>} 
                 bordered={false} 
-                style={{ borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.04)' }}
+                style={{ borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.04)', height: '100%', display: 'flex', flexDirection: 'column' }}
+                bodyStyle={{ flex: 1, display: 'flex', flexDirection: 'column' }}
               >
                 <div style={{ marginBottom: '16px' }}>
                   <Input.Search
@@ -256,8 +363,50 @@ const EstafetasContainer = () => {
                   dataSource={filteredCouriers}
                   columns={columns}
                   rowKey="id"
-                  pagination={{ pageSize: 5 }}
+                  pagination={{ pageSize: 4 }}
+                  style={{ minHeight: '290px' }}
                 />
+              </Card>
+            </Col>
+          </Row>
+
+          <Row gutter={[24, 24]} style={{ marginTop: '24px' }}>
+            <Col span={24}>
+              <Card
+                title={<span style={{ fontWeight: '700', color: '#333' }}>Mapa de Localização dos Estafetas</span>}
+                bordered={false}
+                style={{ borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.04)' }}
+              >
+                <div style={{ display: 'flex', gap: '20px', flexDirection: 'row', flexWrap: 'wrap' }}>
+                  <div 
+                    ref={mapRef} 
+                    style={{ flex: 1, minWidth: '300px', height: '400px', borderRadius: '6px', overflow: 'hidden', border: '1px solid #f0f0f0' }} 
+                  />
+                  <div style={{ 
+                    width: '220px', 
+                    padding: '16px', 
+                    borderRadius: '6px', 
+                    border: '1px solid #f0f0f0', 
+                    backgroundColor: '#fafafa',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '12px'
+                  }}>
+                    <h4 style={{ margin: 0, fontWeight: '700', color: '#333', borderBottom: '1px solid #e8e8e8', paddingBottom: '8px' }}>Legenda do Mapa</h4>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <img src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png" alt="Verde" style={{ height: '20px' }} />
+                      <span style={{ fontSize: '13px', fontWeight: '500', color: '#555' }}>Disponível</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <img src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png" alt="Vermelho" style={{ height: '20px' }} />
+                      <span style={{ fontSize: '13px', fontWeight: '500', color: '#555' }}>Indisponível</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <img src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-orange.png" alt="Laranja" style={{ height: '20px' }} />
+                      <span style={{ fontSize: '13px', fontWeight: '500', color: '#555' }}>Em Trânsito / Entrega</span>
+                    </div>
+                  </div>
+                </div>
               </Card>
             </Col>
           </Row>

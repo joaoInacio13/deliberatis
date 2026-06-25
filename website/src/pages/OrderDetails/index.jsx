@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Layout, Button, Spin, Row, Col, Form, Card, Tag } from 'antd';
-import { ArrowLeftOutlined, EditOutlined } from '@ant-design/icons';
+import { Layout, Button, Spin, Row, Col, Form, Card, Tag, Menu } from 'antd';
+import { ArrowLeftOutlined, EditOutlined, OrderedListOutlined, UserSwitchOutlined } from '@ant-design/icons';
 import useSession from '../../common/useSession';
 import useOrderDetails from '../../common/useOrderDetails';
 
@@ -13,7 +13,7 @@ import MapModal from '../../components/MapModalComponent';
 
 import useEditOrderFlow from '../../common/useEditOrderFlow';
 
-const { Header, Content } = Layout;
+const { Header, Content, Sider } = Layout;
 
 const formatDate = (dateStr) => {
   if (!dateStr) return '';
@@ -466,7 +466,40 @@ const OrderDetailsContainer = () => {
         </div>
       </Header>
 
-      <Content style={{ padding: '40px 24px', maxWidth: '1100px', width: '100%', margin: '0 auto' }}>
+      <Layout>
+        {isOperator && (
+          <Sider 
+            width={220} 
+            theme="light" 
+            style={{ 
+              boxShadow: '2px 0 8px rgba(0,0,0,0.02)',
+              borderRight: '1px solid #f0f0f0',
+              position: 'sticky',
+              top: '64px',
+              height: 'calc(100vh - 64px)',
+              overflowY: 'auto'
+            }}
+          >
+            <Menu
+              mode="inline"
+              selectedKeys={['pedidos']}
+              onClick={(e) => {
+                if (e.key === 'pedidos') {
+                  window.location.href = '/public/home.html';
+                }
+                if (e.key === 'estafetas') {
+                  window.location.href = '/public/estafetas.html';
+                }
+              }}
+              style={{ height: '100%', paddingTop: '16px', borderRight: 0 }}
+              items={[
+                { key: 'pedidos', icon: <OrderedListOutlined />, label: 'Pedidos' },
+                { key: 'estafetas', icon: <UserSwitchOutlined />, label: 'Estafetas' }
+              ]}
+            />
+          </Sider>
+        )}
+        <Content style={{ padding: '40px 24px', maxWidth: '1100px', width: '100%', margin: '0 auto' }}>
         <div style={{ marginBottom: '32px', display: 'flex', alignItems: 'center', position: 'relative', minHeight: '48px' }}>
           <Button 
             type="primary" 
@@ -700,8 +733,8 @@ const OrderDetailsContainer = () => {
         setSearchQuery={setSearchQuery}
         searchingMap={searchingMap}
         handleMapSearch={handleMapSearch}
-        mapRef={editMapRef}
       />
+      </Layout>
     </Layout>
   );
 };
