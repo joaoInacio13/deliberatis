@@ -12,6 +12,7 @@ import EditOrderModal from '../../components/EditOrderModalComponent';
 import MapModal from '../../components/MapModalComponent';
 
 import useEditOrderFlow from '../../common/useEditOrderFlow';
+import './index.less';
 
 const { Header, Content, Sider } = Layout;
 
@@ -433,11 +434,9 @@ const OrderDetailsContainer = () => {
       default:
         return 0;
     }
-  };
-
-  if (sessionLoading || loading) {
+  };  if (sessionLoading || loading) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', backgroundColor: '#f5f5f5' }}>
+      <div className="order-details-layout-loading">
         <Spin size="large" tip="A carregar detalhes da encomenda..." />
       </div>
     );
@@ -446,22 +445,12 @@ const OrderDetailsContainer = () => {
   const statusIndex = order ? getStatusIndex(order.estado) : 0;
 
   return (
-    <Layout style={{ minHeight: '100vh', backgroundColor: '#f5f5f5' }}>
-      <Header style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        background: '#ffffff',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-        padding: '0 24px',
-        position: 'sticky',
-        top: 0,
-        zIndex: 10
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', height: '100%' }}>
-          <img src="/public/images/logo_deliberatis.png" alt="Deliberatis Logo" style={{ maxHeight: '38px', width: 'auto' }} />
+    <Layout className="order-details-layout">
+      <Header className="order-details-header">
+        <div className="order-details-header__logo-container">
+          <img src="/public/images/logo_deliberatis.png" alt="Deliberatis Logo" className="order-details-header__logo" />
         </div>
-        <div style={{ color: '#666', fontWeight: '500', fontSize: '16px' }}>
+        <div className="order-details-header__username">
           Olá, {userName}
         </div>
       </Header>
@@ -471,14 +460,7 @@ const OrderDetailsContainer = () => {
           <Sider 
             width={220} 
             theme="light" 
-            style={{ 
-              boxShadow: '2px 0 8px rgba(0,0,0,0.02)',
-              borderRight: '1px solid #f0f0f0',
-              position: 'sticky',
-              top: '64px',
-              height: 'calc(100vh - 64px)',
-              overflowY: 'auto'
-            }}
+            className="order-details-sider"
           >
             <Menu
               mode="inline"
@@ -491,7 +473,7 @@ const OrderDetailsContainer = () => {
                   window.location.href = '/public/estafetas.html';
                 }
               }}
-              style={{ height: '100%', paddingTop: '16px', borderRight: 0 }}
+              className="order-details-sider__menu"
               items={[
                 { key: 'pedidos', icon: <OrderedListOutlined />, label: 'Pedidos' },
                 { key: 'estafetas', icon: <UserSwitchOutlined />, label: 'Estafetas' }
@@ -499,241 +481,233 @@ const OrderDetailsContainer = () => {
             />
           </Sider>
         )}
-        <Content style={{ padding: '40px 24px', maxWidth: '1100px', width: '100%', margin: '0 auto' }}>
-        <div style={{ marginBottom: '32px', display: 'flex', alignItems: 'center', position: 'relative', minHeight: '48px' }}>
-          <Button 
-            type="primary" 
-            size="large"
-            icon={<ArrowLeftOutlined />} 
-            onClick={() => window.location.href = "/public/home.html"}
-            style={{ borderRadius: '6px', backgroundColor: '#5b5ce1', borderColor: '#5b5ce1', position: 'absolute', left: 0, paddingLeft: '20px', paddingRight: '20px' }}
-          >
-            Voltar
-          </Button>
-          <div style={{ flex: 1, textAlign: 'center' }}>
-            <h2 style={{ margin: 0, color: '#333333', fontSize: '30px', fontWeight: '600' }}>
-              Detalhes da Encomenda
-            </h2>
-            <p style={{ color: '#888', margin: '4px 0 0 0', fontSize: '16px' }}>Código único: #{uid}</p>
+        <Content className="order-details-content">
+          <div className="order-details-content__title-row">
+            <Button 
+              type="primary" 
+              size="large"
+              icon={<ArrowLeftOutlined />} 
+              onClick={() => window.location.href = "/public/home.html"}
+              className="order-details-content__back-btn"
+            >
+              Voltar
+            </Button>
+            <div className="order-details-content__title-center">
+              <h2 className="order-details-content__title-center--title">
+                Detalhes da Encomenda
+              </h2>
+              <p className="order-details-content__title-center--subtitle">Código único: #{uid}</p>
+            </div>
+            {order && !isOperator && (
+              <Button 
+                type="primary"
+                size="large"
+                icon={<EditOutlined />}
+                disabled={order.estado !== 'Pendente'}
+                onClick={handleOpenEditModal}
+                className={`order-details-content__action-btn ${order.estado === 'Pendente' ? 'order-details-content__action-btn--primary' : ''}`}
+              >
+                Editar
+              </Button>
+            )}
+            {order && isOperator && order.estado === 'Pendente' && !isProcessing && (
+              <Button 
+                type="primary"
+                size="large"
+                icon={<EditOutlined />}
+                onClick={() => setIsProcessing(true)}
+                className="order-details-content__action-btn order-details-content__action-btn--primary"
+              >
+                Processar Encomenda
+              </Button>
+            )}
+            {order && isOperator && order.estado === 'Pendente' && isProcessing && (
+              <Button 
+                type="primary"
+                size="large"
+                onClick={() => {
+                  setIsProcessing(false);
+                  setSelectedCourier(null);
+                }}
+                className="order-details-content__action-btn order-details-content__action-btn--primary"
+              >
+                Voltar aos Detalhes
+              </Button>
+            )}
           </div>
-          {order && !isOperator && (
-            <Button 
-              type="primary"
-              size="large"
-              icon={<EditOutlined />}
-              disabled={order.estado !== 'Pendente'}
-              onClick={handleOpenEditModal}
-              style={{ borderRadius: '6px', position: 'absolute', right: 0, backgroundColor: order.estado === 'Pendente' ? '#5b5ce1' : undefined, borderColor: order.estado === 'Pendente' ? '#5b5ce1' : undefined }}
-            >
-              Editar
-            </Button>
-          )}
-          {order && isOperator && order.estado === 'Pendente' && !isProcessing && (
-            <Button 
-              type="primary"
-              size="large"
-              icon={<EditOutlined />}
-              onClick={() => setIsProcessing(true)}
-              style={{ borderRadius: '6px', position: 'absolute', right: 0, backgroundColor: '#5b5ce1', borderColor: '#5b5ce1' }}
-            >
-              Processar Encomenda
-            </Button>
-          )}
-          {order && isOperator && order.estado === 'Pendente' && isProcessing && (
-            <Button 
-              type="primary"
-              size="large"
-              onClick={() => {
-                setIsProcessing(false);
-                setSelectedCourier(null);
-              }}
-              style={{ borderRadius: '6px', position: 'absolute', right: 0, backgroundColor: '#5b5ce1', borderColor: '#5b5ce1' }}
-            >
-              Voltar aos Detalhes
-            </Button>
-          )}
-        </div>
 
-        {order && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
-            {isProcessing ? (
-              <>
-                <Row gutter={[24, 24]}>
-                  <Col xs={24} lg={16}>
-                    <Card 
-                      title={<span style={{ fontWeight: '700', color: '#333' }}>Mapa de Atribuição</span>}
-                      bordered={false}
-                      style={{ borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.04)', display: 'flex', flexDirection: 'column', height: '100%' }}
-                      bodyStyle={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '24px' }}
-                    >
-                      <div 
-                        ref={procMapRef} 
-                        style={{ 
-                          flex: 1,
-                          minHeight: '450px', 
-                          width: '100%', 
-                          borderRadius: '8px', 
-                          overflow: 'hidden', 
-                          border: '1px solid #e0e0e0',
-                          zIndex: 1
-                        }} 
-                      />
-                    </Card>
-                  </Col>
+          {order && (
+            <div className="order-details-content__body-flex">
+              {isProcessing ? (
+                <>
+                  <Row gutter={[24, 24]}>
+                    <Col xs={24} lg={16}>
+                      <Card 
+                        title={<span className="order-details-content__card--title">Mapa de Atribuição</span>}
+                        bordered={false}
+                        className="order-details-content__card"
+                        bodyStyle={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '24px' }}
+                      >
+                        <div 
+                          ref={procMapRef} 
+                          className="order-details-content__map-canvas"
+                        />
+                      </Card>
+                    </Col>
 
-                  <Col xs={24} lg={8}>
-                    <Card 
-                      title={<span style={{ fontWeight: '700', color: '#333' }}>Estatísticas da Rota</span>}
-                      bordered={false}
-                      style={{ borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.04)', display: 'flex', flexDirection: 'column', height: '100%' }}
-                      bodyStyle={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}
-                    >
-                      <div style={{ flex: 1 }}>
-                        {selectedCourier ? (
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                            <div>
-                              <span style={{ color: '#888', display: 'block', fontSize: '12px', fontWeight: '500' }}>ESTAFETA</span>
-                              <span style={{ fontSize: '18px', fontWeight: '600', color: '#333' }}>{selectedCourier.nome}</span>
-                            </div>
-                            <Row gutter={16}>
-                              <Col span={12}>
-                                <span style={{ color: '#888', display: 'block', fontSize: '12px', fontWeight: '500' }}>VEÍCULO</span>
-                                <span style={{ fontSize: '15px', fontWeight: '600', color: '#555' }}>{selectedCourier.veiculo}</span>
-                              </Col>
-                              <Col span={12}>
-                                <span style={{ color: '#888', display: 'block', fontSize: '12px', fontWeight: '500' }}>MATRÍCULA</span>
-                                <div style={{ marginTop: '4px' }}>
-                                  <Tag color="blue">{selectedCourier.matricula}</Tag>
-                                </div>
-                              </Col>
-                            </Row>
-                            <div>
-                              <span style={{ color: '#888', display: 'block', fontSize: '12px', fontWeight: '500' }}>VELOCIDADE DO VEÍCULO</span>
-                              <span style={{ fontSize: '16px', fontWeight: '600', color: '#555' }}>{selectedCourier.velocidade || 'N/A'} km/h</span>
-                            </div>
-                            {routeStats ? (
-                              <>
-                                <hr style={{ border: 'none', borderTop: '1px solid #f0f0f0', margin: '8px 0' }} />
-                                <div>
-                                  <span style={{ color: '#888', display: 'block', fontSize: '12px', fontWeight: '500' }}>DISTÂNCIA DE VIAGEM</span>
-                                  <span style={{ fontSize: '20px', fontWeight: '700', color: '#5b5ce1' }}>{routeStats.distance} km</span>
-                                </div>
-                                <Row gutter={16}>
-                                  <Col span={12}>
-                                    <span style={{ color: '#888', display: 'block', fontSize: '12px', fontWeight: '500' }}>TEMPO PREVISTO</span>
-                                    <span style={{ fontSize: '18px', fontWeight: '700', color: '#2eb82e' }}>{routeStats.duration}</span>
-                                  </Col>
-                                  <Col span={12}>
-                                    <span style={{ color: '#888', display: 'block', fontSize: '12px', fontWeight: '500' }}>PREVISÃO DE CHEGADA</span>
-                                    <span style={{ fontSize: '18px', fontWeight: '700', color: '#ff9900' }}>{routeStats.eta}</span>
-                                  </Col>
-                                </Row>
-                              </>
-                            ) : (
-                              <div style={{ textAlign: 'center', padding: '24px 0', color: '#999' }}>
-                                A calcular rota...
+                    <Col xs={24} lg={8}>
+                      <Card 
+                        title={<span className="order-details-content__card--title">Estatísticas da Rota</span>}
+                        bordered={false}
+                        className="order-details-content__card"
+                        bodyStyle={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}
+                      >
+                        <div style={{ flex: 1 }}>
+                          {selectedCourier ? (
+                            <div className="order-details-content__stats-container">
+                              <div>
+                                <span className="order-details-content__stats-label">ESTAFETA</span>
+                                <span className="order-details-content__stats-value">{selectedCourier.nome}</span>
                               </div>
-                            )}
-                          </div>
-                        ) : (
-                          <div style={{ textAlign: 'center', padding: '48px 16px', color: '#999' }}>
-                            Selecione um estafeta no painel inferior para visualizar as estatísticas da rota.
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Recommendation widget */}
-                      <div style={{ marginTop: '24px' }}>
-                        <div style={{ background: '#f9f9f9', padding: '16px', borderRadius: '8px', border: '1px dashed #d9d9d9' }}>
-                          <span style={{ color: '#888', display: 'block', fontSize: '11px', fontWeight: '600', marginBottom: '8px', letterSpacing: '0.5px' }}>SUGESTÃO DE ATRIBUIÇÃO</span>
-                          {calculatingFastest ? (
-                            <span style={{ fontSize: '13px', color: '#666' }}>A calcular a rota mais rápida...</span>
-                          ) : fastestCourier ? (
-                            <div>
-                              <p style={{ fontSize: '13px', margin: '0 0 12px 0', color: '#333', lineHeight: '1.4' }}>
-                                O estafeta disponível mais rápido é o <strong>{fastestCourier.courier.nome}</strong>, com uma viagem estimada em <strong>{fastestCourier.duration}</strong>.
-                              </p>
-                              {selectedCourier?.id !== fastestCourier.courier.id && (
-                                <Button 
-                                  type="primary"
-                                  size="small"
-                                  onClick={() => {
-                                    setSelectedCourier(fastestCourier.courier);
-                                  }}
-                                  style={{ backgroundColor: '#5b5ce1', borderColor: '#5b5ce1', borderRadius: '4px', fontSize: '12px', fontWeight: '600' }}
-                                >
-                                  Atribuir {fastestCourier.courier.nome.split(' ')[0]}
-                                </Button>
-                              )}
-                              {selectedCourier?.id === fastestCourier.courier.id && (
-                                <span style={{ fontSize: '12px', color: '#2eb82e', fontWeight: '600' }}>✓ Estafeta mais rápido selecionado</span>
+                              <Row gutter={16}>
+                                <Col span={12}>
+                                  <span className="order-details-content__stats-label">VEÍCULO</span>
+                                  <span className="order-details-content__stats-value order-details-content__stats-value--sub">{selectedCourier.veiculo}</span>
+                                </Col>
+                                <Col span={12}>
+                                  <span className="order-details-content__stats-label">MATRÍCULA</span>
+                                  <div style={{ marginTop: '4px' }}>
+                                    <Tag color="blue">{selectedCourier.matricula}</Tag>
+                                  </div>
+                                </Col>
+                              </Row>
+                              <div>
+                                <span className="order-details-content__stats-label">VELOCIDADE DO VEÍCULO</span>
+                                <span className="order-details-content__stats-value order-details-content__stats-value--speed">{selectedCourier.velocidade || 'N/A'} km/h</span>
+                              </div>
+                              {routeStats ? (
+                                <>
+                                  <hr className="order-details-content__divider" />
+                                  <div>
+                                    <span className="order-details-content__stats-label">DISTÂNCIA DE VIAGEM</span>
+                                    <span className="order-details-content__stats-value order-details-content__stats-value--large">{routeStats.distance} km</span>
+                                  </div>
+                                  <Row gutter={16}>
+                                    <Col span={12}>
+                                      <span className="order-details-content__stats-label">TEMPO PREVISTO</span>
+                                      <span className="order-details-content__stats-value order-details-content__stats-value--duration">{routeStats.duration}</span>
+                                    </Col>
+                                    <Col span={12}>
+                                      <span className="order-details-content__stats-label">PREVISÃO DE CHEGADA</span>
+                                      <span className="order-details-content__stats-value order-details-content__stats-value--eta">{routeStats.eta}</span>
+                                    </Col>
+                                  </Row>
+                                </>
+                              ) : (
+                                <div className="order-details-content__empty-msg order-details-content__empty-msg--loading">
+                                  A calcular rota...
+                                </div>
                               )}
                             </div>
                           ) : (
-                            <span style={{ fontSize: '13px', color: '#999' }}>Sem estafetas disponíveis de momento.</span>
+                            <div className="order-details-content__empty-msg">
+                              Selecione um estafeta no painel inferior para visualizar as estatísticas da rota.
+                            </div>
                           )}
                         </div>
-                      </div>
-                    </Card>
-                  </Col>
-                </Row>
 
-                <OrderDecisionPanel
-                  couriers={availableCouriers}
-                  submitting={decisionSubmitting}
-                  selectedCourierId={selectedCourier ? selectedCourier.id : null}
-                  onChangeCourierId={(id) => {
-                    const courier = availableCouriers.find(c => c.id === id);
-                    setSelectedCourier(courier || null);
-                  }}
-                  onDecision={(status, estafetaId, reason) => {
-                    handleOperatorDecision(status, estafetaId, reason);
-                  }}
-                />
-              </>
-            ) : (
-              <>
-                {/* Timeline do Estado */}
-                <OrderTimeline statusIndex={statusIndex} statusText={order.estado} rejectionReason={order.motivo_rejeicao} />
+                        {/* Recommendation widget */}
+                        <div className="order-details-content__recommendation">
+                          <div className="order-details-content__recommendation--box">
+                            <span className="order-details-content__recommendation--label">SUGESTÃO DE ATRIBUIÇÃO</span>
+                            {calculatingFastest ? (
+                              <span style={{ fontSize: '13px', color: '#666' }}>A calcular a rota mais rápida...</span>
+                            ) : fastestCourier ? (
+                              <div>
+                                <p className="order-details-content__recommendation--desc">
+                                  O estafeta disponível mais rápido é o <strong>{fastestCourier.courier.nome}</strong>, com uma viagem estimada em <strong>{fastestCourier.duration}</strong>.
+                                </p>
+                                {selectedCourier?.id !== fastestCourier.courier.id && (
+                                  <Button 
+                                    type="primary"
+                                    size="small"
+                                    onClick={() => {
+                                      setSelectedCourier(fastestCourier.courier);
+                                    }}
+                                    className="order-details-content__recommendation--btn"
+                                  >
+                                    Atribuir {fastestCourier.courier.nome.split(' ')[0]}
+                                  </Button>
+                                )}
+                                {selectedCourier?.id === fastestCourier.courier.id && (
+                                  <span className="order-details-content__recommendation--success-tag">✓ Estafeta mais rápido selecionado</span>
+                                )}
+                              </div>
+                            ) : (
+                              <span style={{ fontSize: '13px', color: '#999' }}>Sem estafetas disponíveis de momento.</span>
+                            )}
+                          </div>
+                        </div>
+                      </Card>
+                    </Col>
+                  </Row>
 
-                {/* Informações e Mapa */}
-                <Row gutter={[32, 32]}>
-                  <Col xs={24} md={12}>
-                    <OrderDetailsInfo order={order} formatDate={formatDate} />
-                  </Col>
+                  <OrderDecisionPanel
+                    couriers={availableCouriers}
+                    submitting={decisionSubmitting}
+                    selectedCourierId={selectedCourier ? selectedCourier.id : null}
+                    onChangeCourierId={(id) => {
+                      const courier = availableCouriers.find(c => c.id === id);
+                      setSelectedCourier(courier || null);
+                    }}
+                    onDecision={(status, estafetaId, reason) => {
+                      handleOperatorDecision(status, estafetaId, reason);
+                    }}
+                  />
+                </>
+              ) : (
+                <>
+                  {/* Timeline do Estado */}
+                  <OrderTimeline statusIndex={statusIndex} statusText={order.estado} rejectionReason={order.motivo_rejeicao} />
 
-                  <Col xs={24} md={12}>
-                    <OrderDetailsMap order={order} mapRef={mapRef} />
-                  </Col>
-                </Row>
-              </>
-            )}
-          </div>
-        )}
-      </Content>
+                  {/* Informações e Mapa */}
+                  <Row gutter={[32, 32]}>
+                    <Col xs={24} md={12}>
+                      <OrderDetailsInfo order={order} formatDate={formatDate} />
+                    </Col>
 
-      <EditOrderModal
-        open={isEditModalOpen}
-        onCancel={() => setIsEditModalOpen(false)}
-        form={form}
-        submitting={submitting}
-        onFinish={handleUpdateOrder}
-        openMapModal={() => handleOpenMapModal(hasConfirmedPin)}
-        postalCodeStatus={postalCodeStatus}
-        postalCodeErrorMsg={postalCodeErrorMsg}
-        loadingPostalCode={loadingPostalCode}
-        handlePostalCodeChange={handlePostalCodeChange}
-      />
+                    <Col xs={24} md={12}>
+                      <OrderDetailsMap order={order} mapRef={mapRef} />
+                    </Col>
+                  </Row>
+                </>
+              )}
+            </div>
+          )}
+        </Content>
 
-      <MapModal
-        open={isMapModalOpen}
-        onCancel={() => setIsMapModalOpen(false)}
-        onConfirmLocation={() => handleConfirmLocation()}
-        searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
-        searchingMap={searchingMap}
-        handleMapSearch={handleMapSearch}
-      />
+        <EditOrderModal
+          open={isEditModalOpen}
+          onCancel={() => setIsEditModalOpen(false)}
+          form={form}
+          submitting={submitting}
+          onFinish={handleUpdateOrder}
+          openMapModal={() => handleOpenMapModal(hasConfirmedPin)}
+          postalCodeStatus={postalCodeStatus}
+          postalCodeErrorMsg={postalCodeErrorMsg}
+          loadingPostalCode={loadingPostalCode}
+          handlePostalCodeChange={handlePostalCodeChange}
+        />
+
+        <MapModal
+          open={isMapModalOpen}
+          onCancel={() => setIsMapModalOpen(false)}
+          onConfirmLocation={() => handleConfirmLocation()}
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          searchingMap={searchingMap}
+          handleMapSearch={handleMapSearch}
+        />
       </Layout>
     </Layout>
   );

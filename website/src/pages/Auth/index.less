@@ -1,0 +1,67 @@
+.auth {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #f5f5f5;
+
+  &__card {
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+
+    &--login {
+      width: 400px;
+    }
+
+    &--register {
+      width: 450px;
+    }
+  }
+
+  &__header {
+    text-align: center;
+    margin-bottom: 24px;
+
+    &--title {
+      margin: 0;
+      color: #5b5ce1;
+    }
+  }
+
+  &__logo {
+    max-height: 48px;
+    width: auto;
+    margin-bottom: 8px;
+  }
+
+  &__action-btn {
+    background-color: #5b5ce1;
+    border-color: #5b5ce1;
+
+    &:hover,
+    &:focus,
+    &:active {
+      background-color: darken(#5b5ce1, 10%) !important;
+      border-color: darken(#5b5ce1, 10%) !important;
+    }
+  }
+
+  &__date-picker {
+    width: 100%;
+  }
+
+  &__footer {
+    text-align: center;
+    margin-top: 16px;
+
+    &--link {
+      color: #5b5ce1;
+      font-weight: bold;
+      cursor: pointer;
+
+      &:hover {
+        color: darken(#5b5ce1, 15%);
+      }
+    }
+  }
+}

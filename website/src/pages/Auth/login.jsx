@@ -52,9 +52,9 @@ const Login = ({ onNavigate, onLoginFake }) => {
   };
 
   return (
-    <Card style={{ width: 400, borderRadius: 8, boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}>
-      <div style={{ textAlign: 'center', marginBottom: 24 }}>
-        <img src="/public/images/logo_deliberatis.png" alt="Deliberatis Logo" style={{ maxHeight: '48px', width: 'auto', marginBottom: '8px' }} />
+    <Card className="auth__card auth__card--login" bordered={false}>
+      <div className="auth__header">
+        <img src="/public/images/logo_deliberatis.png" alt="Deliberatis Logo" className="auth__logo" />
         <br />
         <Text type="secondary">Inicia sessão na tua conta</Text>
       </div>
@@ -80,16 +80,16 @@ const Login = ({ onNavigate, onLoginFake }) => {
         </Form.Item>
 
         <Form.Item>
-          <Button type="primary" htmlType="submit" size="large" block loading={loading} style={{ backgroundColor: '#5b5ce1' }}>
+          <Button type="primary" htmlType="submit" size="large" block loading={loading} className="auth__action-btn">
             Entrar
           </Button>
         </Form.Item>
       </Form>
 
       {/* Ligação de navegação rápida para ir para o ecrã de registo */}
-      <div style={{ textAlign: 'center', marginTop: 16 }}>
+      <div className="auth__footer">
         <Text>Não tens conta? </Text>
-        <a onClick={() => onNavigate('register')} style={{ color: '#5b5ce1', fontWeight: 'bold' }}>
+        <a onClick={() => onNavigate('register')} className="auth__footer--link">
           Regista-te aqui
         </a>
       </div>

@@ -1,0 +1,201 @@
+.estafetas-layout {
+  min-height: 100vh;
+  background-color: #f5f5f5;
+}
+
+.estafetas-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  padding: 0 24px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+
+  &__logo-container {
+    display: flex;
+    align-items: center;
+    height: 100%;
+  }
+
+  &__logo {
+    max-height: 38px;
+    width: auto;
+  }
+
+  &__actions {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+  }
+}
+
+.estafetas-sider {
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.02);
+  border-right: 1px solid #f0f0f0;
+  position: sticky;
+  top: 64px;
+  height: calc(100vh - 64px);
+  overflow-y: auto;
+
+  &__menu {
+    height: 100%;
+    padding-top: 16px;
+    border-right: 0;
+  }
+}
+
+.estafetas-content {
+  padding: 40px 24px;
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+
+  &__welcome {
+    margin-bottom: 24px;
+
+    &--title {
+      margin: 0;
+      color: #333333;
+      font-size: 28px;
+      font-weight: 600;
+    }
+
+    &--desc {
+      color: #666666;
+      margin: 4px 0 0 0;
+    }
+  }
+
+  &__col-form {
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__col-table {
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__card {
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+
+    &--map-card {
+      height: auto;
+    }
+
+    &--title {
+      font-weight: 700;
+      color: #333;
+    }
+  }
+
+  &__form {
+    &--btn-submit {
+      width: 100%;
+      background-color: #2eb82e;
+      border-color: #2eb82e;
+      font-weight: 600;
+
+      &:hover,
+      &:focus,
+      &:active {
+        background-color: darken(#2eb82e, 10%) !important;
+        border-color: darken(#2eb82e, 10%) !important;
+      }
+    }
+  }
+
+  &__search-wrapper {
+    margin-bottom: 16px;
+
+    &--search {
+      width: 100%;
+      max-width: 350px;
+    }
+  }
+
+  &__table {
+    min-height: 290px;
+
+    &--name {
+      font-weight: 600;
+      color: #333;
+    }
+
+    &--vehicle-icon {
+      color: #5b5ce1;
+    }
+
+    &--tag-bold {
+      font-weight: bold;
+    }
+
+    &--tag-cursor {
+      font-weight: bold;
+      margin: 0;
+      cursor: pointer;
+    }
+
+    &--select-status {
+      width: 130px;
+    }
+  }
+
+  &__map-wrapper {
+    display: flex;
+    gap: 20px;
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  &__map-canvas {
+    flex: 1;
+    min-width: 300px;
+    height: 400px;
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid #f0f0f0;
+  }
+
+  &__map-legend {
+    width: 220px;
+    padding: 16px;
+    border-radius: 6px;
+    border: 1px solid #f0f0f0;
+    background-color: #fafafa;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+
+    &--title {
+      margin: 0;
+      font-weight: 700;
+      color: #333;
+      border-bottom: 1px solid #e8e8e8;
+      padding-bottom: 8px;
+    }
+
+    &--item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    &--icon {
+      height: 20px;
+    }
+
+    &--label {
+      font-size: 13px;
+      font-weight: 500;
+      color: #555;
+    }
+  }
+}

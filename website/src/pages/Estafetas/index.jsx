@@ -5,6 +5,7 @@ import dayjs from 'dayjs';
 import useSession from '../../common/useSession';
 
 import useCouriers from '../../common/useCouriers';
+import './index.less';
 
 const { Header, Content, Sider } = Layout;
 
@@ -135,7 +136,7 @@ const EstafetasContainer = () => {
       dataIndex: 'nome',
       key: 'nome',
       sorter: (a, b) => a.nome.localeCompare(b.nome),
-      render: (text) => <span style={{ fontWeight: '600', color: '#333' }}>{text}</span>
+      render: (text) => <span className="estafetas-content__table--name">{text}</span>
     },
     {
       title: 'Telemóvel',
@@ -148,7 +149,7 @@ const EstafetasContainer = () => {
       key: 'veiculo',
       render: (veiculo) => (
         <Space>
-          <CarOutlined style={{ color: '#5b5ce1' }} />
+          <CarOutlined className="estafetas-content__table--vehicle-icon" />
           <span>{veiculo}</span>
         </Space>
       )
@@ -168,16 +169,16 @@ const EstafetasContainer = () => {
           return (
             <Select
               value={estado}
-              style={{ width: 130 }}
+              className="estafetas-content__table--select-status"
               onChange={(val) => handleUpdateStatus(record.id, val)}
               bordered={false}
               dropdownMatchSelectWidth={false}
             >
               <Select.Option value="Disponível">
-                <Tag color="success" style={{ fontWeight: 'bold', margin: 0, cursor: 'pointer' }}>Disponível</Tag>
+                <Tag color="success" className="estafetas-content__table--tag-cursor">Disponível</Tag>
               </Select.Option>
               <Select.Option value="Indisponível">
-                <Tag color="error" style={{ fontWeight: 'bold', margin: 0, cursor: 'pointer' }}>Indisponível</Tag>
+                <Tag color="error" className="estafetas-content__table--tag-cursor">Indisponível</Tag>
               </Select.Option>
             </Select>
           );
@@ -185,37 +186,27 @@ const EstafetasContainer = () => {
         
         let color = 'default';
         if (estado === 'Em Entrega' || estado === 'Em Trânsito') color = 'processing';
-        return <Tag color={color} style={{ fontWeight: 'bold' }}>{estado}</Tag>;
+        return <Tag color={color} className="estafetas-content__table--tag-bold">{estado}</Tag>;
       }
     }
   ];
 
   if (sessionLoading) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', backgroundColor: '#f5f5f5' }}>
+      <div className="estafetas-layout-loading">
         <Spin size="large" tip="A verificar autorização..." />
       </div>
     );
   }
 
   return (
-    <Layout style={{ minHeight: '100vh', backgroundColor: '#f5f5f5' }}>
-      <Header style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        background: '#ffffff',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-        padding: '0 24px',
-        position: 'sticky',
-        top: 0,
-        zIndex: 10
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', height: '100%' }}>
-          <img src="/public/images/logo_deliberatis.png" alt="Deliberatis Logo" style={{ maxHeight: '38px', width: 'auto' }} />
+    <Layout className="estafetas-layout">
+      <Header className="estafetas-header">
+        <div className="estafetas-header__logo-container">
+          <img src="/public/images/logo_deliberatis.png" alt="Deliberatis Logo" className="estafetas-header__logo" />
         </div>
 
-        <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+        <div className="estafetas-header__actions">
           <Button
             type="text"
             icon={<LogoutOutlined />}
@@ -231,14 +222,7 @@ const EstafetasContainer = () => {
         <Sider 
           width={220} 
           theme="light" 
-          style={{ 
-            boxShadow: '2px 0 8px rgba(0,0,0,0.02)',
-            borderRight: '1px solid #f0f0f0',
-            position: 'sticky',
-            top: '64px',
-            height: 'calc(100vh - 64px)',
-            overflowY: 'auto'
-          }}
+          className="estafetas-sider"
         >
           <Menu
             mode="inline"
@@ -248,30 +232,30 @@ const EstafetasContainer = () => {
                 window.location.href = '/public/home.html';
               }
             }}
-            style={{ height: '100%', paddingTop: '16px', borderRight: 0 }}
+            className="estafetas-sider__menu"
             items={[
               { key: 'pedidos', icon: <OrderedListOutlined />, label: 'Pedidos' },
               { key: 'estafetas', icon: <UserSwitchOutlined />, label: 'Estafetas' }
             ]}
           />
         </Sider>
-        <Content style={{ padding: '40px 24px', maxWidth: '1200px', width: '100%', margin: '0 auto' }}>
-          <div style={{ marginBottom: '24px' }}>
-            <h2 style={{ margin: 0, color: '#333333', fontSize: '28px', fontWeight: '600' }}>
+        <Content className="estafetas-content">
+          <div className="estafetas-content__welcome">
+            <h2 className="estafetas-content__welcome--title">
               Olá, {userName}!
             </h2>
-            <p style={{ color: '#666666', margin: '4px 0 0 0' }}>
+            <p className="estafetas-content__welcome--desc">
               Consola de Operador - Faça a gestão e registo dos estafetas da plataforma.
             </p>
           </div>
 
           <Row gutter={[24, 24]}>
             {/* Form para Adicionar Novo Estafeta */}
-            <Col xs={24} lg={8} style={{ display: 'flex', flexDirection: 'column' }}>
+            <Col xs={24} lg={8} className="estafetas-content__col-form">
               <Card 
-                title={<span style={{ fontWeight: '700', color: '#333' }}>Registar Novo Estafeta</span>} 
+                title={<span className="estafetas-content__card--title">Registar Novo Estafeta</span>} 
                 bordered={false} 
-                style={{ borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.04)', height: '100%', display: 'flex', flexDirection: 'column' }}
+                className="estafetas-content__card"
                 bodyStyle={{ flex: 1 }}
               >
                 <Form
@@ -294,7 +278,7 @@ const EstafetasContainer = () => {
                     rules={[{ required: true, message: 'Insira a data de nascimento.' }]}
                   >
                     <DatePicker 
-                      style={{ width: '100%' }} 
+                      className="estafetas-content__form--date-picker"
                       format="YYYY-MM-DD" 
                       placeholder="Selecionar data" 
                       disabledDate={disabledDate} 
@@ -334,7 +318,7 @@ const EstafetasContainer = () => {
                       type="primary" 
                       htmlType="submit" 
                       icon={<PlusOutlined />}
-                      style={{ width: '100%', backgroundColor: '#2eb82e', borderColor: '#2eb82e', fontWeight: '600' }}
+                      className="estafetas-content__form--btn-submit"
                     >
                       Registar Estafeta
                     </Button>
@@ -344,19 +328,19 @@ const EstafetasContainer = () => {
             </Col>
 
             {/* Lista de Estafetas Existentes */}
-            <Col xs={24} lg={16} style={{ display: 'flex', flexDirection: 'column' }}>
+            <Col xs={24} lg={16} className="estafetas-content__col-table">
               <Card 
-                title={<span style={{ fontWeight: '700', color: '#333' }}>Estafetas Registados</span>} 
+                title={<span className="estafetas-content__card--title">Estafetas Registados</span>} 
                 bordered={false} 
-                style={{ borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.04)', height: '100%', display: 'flex', flexDirection: 'column' }}
+                className="estafetas-content__card"
                 bodyStyle={{ flex: 1, display: 'flex', flexDirection: 'column' }}
               >
-                <div style={{ marginBottom: '16px' }}>
+                <div className="estafetas-content__search-wrapper">
                   <Input.Search
                     placeholder="Pesquisar estafeta por nome..."
                     allowClear
                     onChange={(e) => setSearchText(e.target.value)}
-                    style={{ width: '100%', maxWidth: '350px' }}
+                    className="estafetas-content__search-wrapper--search"
                   />
                 </div>
                 <Table
@@ -364,7 +348,7 @@ const EstafetasContainer = () => {
                   columns={columns}
                   rowKey="id"
                   pagination={{ pageSize: 4 }}
-                  style={{ minHeight: '290px' }}
+                  className="estafetas-content__table"
                 />
               </Card>
             </Col>
@@ -373,37 +357,28 @@ const EstafetasContainer = () => {
           <Row gutter={[24, 24]} style={{ marginTop: '24px' }}>
             <Col span={24}>
               <Card
-                title={<span style={{ fontWeight: '700', color: '#333' }}>Mapa de Localização dos Estafetas</span>}
+                title={<span className="estafetas-content__card--title">Mapa de Localização dos Estafetas</span>}
                 bordered={false}
-                style={{ borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.04)' }}
+                className="estafetas-content__card estafetas-content__card--map-card"
               >
-                <div style={{ display: 'flex', gap: '20px', flexDirection: 'row', flexWrap: 'wrap' }}>
+                <div className="estafetas-content__map-wrapper">
                   <div 
                     ref={mapRef} 
-                    style={{ flex: 1, minWidth: '300px', height: '400px', borderRadius: '6px', overflow: 'hidden', border: '1px solid #f0f0f0' }} 
+                    className="estafetas-content__map-canvas"
                   />
-                  <div style={{ 
-                    width: '220px', 
-                    padding: '16px', 
-                    borderRadius: '6px', 
-                    border: '1px solid #f0f0f0', 
-                    backgroundColor: '#fafafa',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '12px'
-                  }}>
-                    <h4 style={{ margin: 0, fontWeight: '700', color: '#333', borderBottom: '1px solid #e8e8e8', paddingBottom: '8px' }}>Legenda do Mapa</h4>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <img src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png" alt="Verde" style={{ height: '20px' }} />
-                      <span style={{ fontSize: '13px', fontWeight: '500', color: '#555' }}>Disponível</span>
+                  <div className="estafetas-content__map-legend">
+                    <h4 className="estafetas-content__map-legend--title">Legenda do Mapa</h4>
+                    <div className="estafetas-content__map-legend--item">
+                      <img src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png" alt="Verde" className="estafetas-content__map-legend--icon" />
+                      <span className="estafetas-content__map-legend--label">Disponível</span>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <img src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png" alt="Vermelho" style={{ height: '20px' }} />
-                      <span style={{ fontSize: '13px', fontWeight: '500', color: '#555' }}>Indisponível</span>
+                    <div className="estafetas-content__map-legend--item">
+                      <img src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png" alt="Vermelho" className="estafetas-content__map-legend--icon" />
+                      <span className="estafetas-content__map-legend--label">Indisponível</span>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <img src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-orange.png" alt="Laranja" style={{ height: '20px' }} />
-                      <span style={{ fontSize: '13px', fontWeight: '500', color: '#555' }}>Em Trânsito / Entrega</span>
+                    <div className="estafetas-content__map-legend--item">
+                      <img src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-orange.png" alt="Laranja" className="estafetas-content__map-legend--icon" />
+                      <span className="estafetas-content__map-legend--label">Em Trânsito / Entrega</span>
                     </div>
                   </div>
                 </div>

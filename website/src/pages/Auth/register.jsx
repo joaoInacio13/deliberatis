@@ -60,9 +60,9 @@ const Register = ({ onNavigate }) => {
   };
 
   return (
-    <Card style={{ width: 450, borderRadius: 8, boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}>
-      <div style={{ textAlign: 'center', marginBottom: 24 }}>
-        <Title level={3} style={{ margin: 0, color: '#5b5ce1' }}>Criar Conta</Title>
+    <Card className="auth__card auth__card--register" bordered={false}>
+      <div className="auth__header">
+        <Title level={3} className="auth__header--title">Criar Conta</Title>
         <Text type="secondary">Junta-te à Deliberatis</Text>
       </div>
 
@@ -131,7 +131,7 @@ const Register = ({ onNavigate }) => {
           rules={[{ required: true, message: 'Seleciona a tua data de nascimento!' }]}
         >
           <DatePicker 
-            style={{ width: '100%' }} 
+            className="auth__date-picker" 
             size="large" 
             placeholder="Selecionar data" 
             format="YYYY-MM-DD" 
@@ -141,16 +141,16 @@ const Register = ({ onNavigate }) => {
         </Form.Item>
 
         <Form.Item>
-          <Button type="primary" htmlType="submit" size="large" block loading={loading} style={{ backgroundColor: '#5b5ce1' }}>
+          <Button type="primary" htmlType="submit" size="large" block loading={loading} className="auth__action-btn">
             Registar
           </Button>
         </Form.Item>
       </Form>
 
       {/* Ligação de navegação rápida para voltar ao ecrã de login */}
-      <div style={{ textAlign: 'center', marginTop: 16 }}>
+      <div className="auth__footer">
         <Text>Já tens conta? </Text>
-        <a onClick={() => onNavigate('login')} style={{ color: '#5b5ce1', fontWeight: 'bold' }}>
+        <a onClick={() => onNavigate('login')} className="auth__footer--link">
           Faz login aqui
         </a>
       </div>

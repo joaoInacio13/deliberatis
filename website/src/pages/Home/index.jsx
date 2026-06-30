@@ -9,6 +9,7 @@ import MapModal from '../../components/MapModalComponent';
 import useLoadOrders from '../../common/useLoadOrders';
 import useCreateOrderFlow from '../../common/useCreateOrderFlow';
 import useSession from '../../common/useSession';
+import './index.less';
 
 const { Header, Content, Sider } = Layout;
 
@@ -55,40 +56,26 @@ const HomeContainer = () => {
 
   if (sessionLoading || loading) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', backgroundColor: '#f5f5f5' }}>
+      <div className="home-layout-loading">
         <Spin size="large" tip="A carregar..." />
       </div>
     );
   }
 
   return (
-    <Layout style={{ minHeight: '100vh', backgroundColor: '#f5f5f5' }}>
-      <Header style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        background: '#ffffff',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-        padding: '0 24px',
-        position: 'sticky',
-        top: 0,
-        zIndex: 10
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', height: '100%' }}>
-          <img src="/public/images/logo_deliberatis.png" alt="Deliberatis Logo" style={{ maxHeight: '38px', width: 'auto' }} />
+    <Layout className="home-layout">
+      <Header className="home-header">
+        <div className="home-header__logo-container">
+          <img src="/public/images/logo_deliberatis.png" alt="Deliberatis Logo" className="home-header__logo" />
         </div>
 
-        <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+        <div className="home-header__actions">
           {userGroup !== 'operador' && (
             <Button
               type="primary"
               icon={<PlusOutlined />}
               onClick={handleOpenModal}
-              style={{
-                backgroundColor: '#2eb82e',
-                borderColor: '#2eb82e',
-                fontWeight: '600'
-              }}
+              className="home-header__create-btn"
             >
               Criar Encomenda
             </Button>
@@ -109,10 +96,7 @@ const HomeContainer = () => {
           <Sider 
             width={220} 
             theme="light" 
-            style={{ 
-              boxShadow: '2px 0 8px rgba(0,0,0,0.02)',
-              borderRight: '1px solid #f0f0f0'
-            }}
+            className="home-sider"
           >
             <Menu
               mode="inline"
@@ -122,48 +106,38 @@ const HomeContainer = () => {
                   window.location.href = '/public/estafetas.html';
                 }
               }}
-              style={{ height: '100%', paddingTop: '16px', borderRight: 0 }}
+              className="home-sider__menu"
               items={[
                 { key: 'pedidos', icon: <OrderedListOutlined />, label: 'Pedidos' },
                 { key: 'estafetas', icon: <UserSwitchOutlined />, label: 'Estafetas' }
               ]}
             />
           </Sider>
-          <Content style={{ padding: '40px 24px', maxWidth: '1200px', width: '100%', margin: '0 auto' }}>
-            <div style={{ marginBottom: '24px' }}>
-              <h2 style={{ margin: 0, color: '#333333', fontSize: '28px', fontWeight: '600' }}>
+          <Content className="home-content home-content--operator">
+            <div className="home-content__welcome">
+              <h2 className="home-content__welcome--title">
                 Olá, {userName}!
               </h2>
-              <p style={{ color: '#666666', margin: '4px 0 0 0' }}>
+              <p className="home-content__welcome--desc">
                 Consola de Operador - Faça a gestão das encomendas pendentes do sistema.
               </p>
             </div>
 
-            <div style={{
-              background: '#ffffff',
-              padding: '24px',
-              borderRadius: '8px',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.04)'
-            }}>
+            <div className="home-content__table-wrapper">
               <OrdersTableOperador orders={orders} onStatusChange={handleStatusChange} />
             </div>
           </Content>
         </Layout>
       ) : (
-        <Content style={{ padding: '40px 24px', maxWidth: '1000px', width: '100%', margin: '0 auto' }}>
-          <div style={{ marginBottom: '24px' }}>
-            <h2 style={{ margin: 0, color: '#333333', fontSize: '28px', fontWeight: '600' }}>
+        <Content className="home-content home-content--client">
+          <div className="home-content__welcome">
+            <h2 className="home-content__welcome--title">
               Olá, {userName}!
             </h2>
-            <p style={{ color: '#666666', margin: '4px 0 0 0' }}>Gere e consulta as tuas encomendas em tempo real.</p>
+            <p className="home-content__welcome--desc">Gere e consulta as tuas encomendas em tempo real.</p>
           </div>
 
-          <div style={{
-            background: '#ffffff',
-            padding: '24px',
-            borderRadius: '8px',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.04)'
-          }}>
+          <div className="home-content__table-wrapper">
             <OrdersTableCliente orders={orders} handleOpenCreateModal={handleOpenModal} />
           </div>
         </Content>

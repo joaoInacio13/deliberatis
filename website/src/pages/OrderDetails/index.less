@@ -1,0 +1,261 @@
+.order-details-layout-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #f5f5f5;
+}
+
+.order-details-layout {
+  min-height: 100vh;
+  background-color: #f5f5f5;
+}
+
+.order-details-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  padding: 0 24px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+
+  &__logo-container {
+    display: flex;
+    align-items: center;
+    height: 100%;
+  }
+
+  &__logo {
+    max-height: 38px;
+    width: auto;
+  }
+
+  &__username {
+    color: #666;
+    font-weight: 500;
+    font-size: 16px;
+  }
+}
+
+.order-details-sider {
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.02);
+  border-right: 1px solid #f0f0f0;
+  position: sticky;
+  top: 64px;
+  height: calc(100vh - 64px);
+  overflow-y: auto;
+
+  &__menu {
+    height: 100%;
+    padding-top: 16px;
+    border-right: 0;
+  }
+}
+
+.order-details-content {
+  padding: 40px 24px;
+  max-width: 1100px;
+  width: 100%;
+  margin: 0 auto;
+
+  &__title-row {
+    margin-bottom: 32px;
+    display: flex;
+    align-items: center;
+    position: relative;
+    min-height: 48px;
+  }
+
+  &__back-btn {
+    border-radius: 6px;
+    background-color: #5b5ce1;
+    border-color: #5b5ce1;
+    position: absolute;
+    left: 0;
+    padding-left: 20px;
+    padding-right: 20px;
+
+    &:hover,
+    &:focus {
+      background-color: darken(#5b5ce1, 10%) !important;
+      border-color: darken(#5b5ce1, 10%) !important;
+    }
+  }
+
+  &__title-center {
+    flex: 1;
+    text-align: center;
+
+    &--title {
+      margin: 0;
+      color: #333333;
+      font-size: 30px;
+      font-weight: 600;
+    }
+
+    &--subtitle {
+      color: #888;
+      margin: 4px 0 0 0;
+      font-size: 16px;
+    }
+  }
+
+  &__action-btn {
+    border-radius: 6px;
+    position: absolute;
+    right: 0;
+
+    &--primary {
+      background-color: #5b5ce1;
+      border-color: #5b5ce1;
+
+      &:hover,
+      &:focus {
+        background-color: darken(#5b5ce1, 10%) !important;
+        border-color: darken(#5b5ce1, 10%) !important;
+      }
+    }
+  }
+
+  &__body-flex {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+  }
+
+  &__card {
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+
+    &--title {
+      font-weight: 700;
+      color: #333;
+    }
+  }
+
+  &__map-canvas {
+    flex: 1;
+    min-height: 450px;
+    width: 100%;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid #e0e0e0;
+    z-index: 1;
+  }
+
+  &__stats-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  &__stats-label {
+    color: #888;
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+  }
+
+  &__stats-value {
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+
+    &--large {
+      font-size: 20px;
+      font-weight: 700;
+      color: #5b5ce1;
+    }
+
+    &--duration {
+      font-size: 18px;
+      font-weight: 700;
+      color: #2eb82e;
+    }
+
+    &--eta {
+      font-size: 18px;
+      font-weight: 700;
+      color: #ff9900;
+    }
+
+    &--sub {
+      font-size: 15px;
+      color: #555;
+    }
+
+    &--speed {
+      font-size: 16px;
+      color: #555;
+    }
+  }
+
+  &__divider {
+    border: none;
+    border-top: 1px solid #f0f0f0;
+    margin: 8px 0;
+  }
+
+  &__empty-msg {
+    text-align: center;
+    padding: 48px 16px;
+    color: #999;
+
+    &--loading {
+      padding: 24px 0;
+    }
+  }
+
+  &__recommendation {
+    margin-top: 24px;
+
+    &--box {
+      background: #f9f9f9;
+      padding: 16px;
+      border-radius: 8px;
+      border: 1px dashed #d9d9d9;
+    }
+
+    &--label {
+      color: #888;
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      letter-spacing: 0.5px;
+    }
+
+    &--desc {
+      font-size: 13px;
+      margin: 0 0 12px 0;
+      color: #333;
+      line-height: 1.4;
+    }
+
+    &--btn {
+      background-color: #5b5ce1;
+      border-color: #5b5ce1;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+
+      &:hover,
+      &:focus {
+        background-color: darken(#5b5ce1, 10%) !important;
+        border-color: darken(#5b5ce1, 10%) !important;
+      }
+    }
+
+    &--success-tag {
+      font-size: 12px;
+      color: #2eb82e;
+      font-weight: 600;
+    }
+  }
+}
