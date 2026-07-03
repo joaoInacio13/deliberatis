@@ -1,0 +1,38 @@
+.profile-modal {
+  &__title {
+    font-weight: 700;
+    color: #333;
+  }
+
+  &__input-readonly {
+    background-color: #fafafa;
+    color: #888;
+    cursor: not-allowed;
+  }
+
+  &__date-picker {
+    width: 100% !important;
+  }
+
+  &__save-btn {
+    width: 100%;
+    background-color: #5b5ce1;
+    border-color: #5b5ce1;
+    font-weight: 600;
+    margin-top: 8px;
+
+    &:hover,
+    &:focus,
+    &:active {
+      background-color: darken(#5b5ce1, 10%) !important;
+      border-color: darken(#5b5ce1, 10%) !important;
+    }
+  }
+
+  &__loading-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 40px 0;
+  }
+}

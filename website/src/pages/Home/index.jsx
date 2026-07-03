@@ -1,11 +1,12 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Layout, Button, Spin, Form, Menu } from 'antd';
-import { PlusOutlined, LogoutOutlined, OrderedListOutlined, UserSwitchOutlined } from '@ant-design/icons';
+import { PlusOutlined, LogoutOutlined, OrderedListOutlined, UserSwitchOutlined, UserOutlined } from '@ant-design/icons';
 
 import OrdersTableCliente from '../../components/OrdersTableClienteComponent';
 import OrdersTableOperador from '../../components/OrdersTableOperadorComponent';
 import CreateOrderModal from '../../components/CreateOrderModalComponent';
 import MapModal from '../../components/MapModalComponent';
+import ProfileModal from '../../components/ProfileModalComponent';
 import useLoadOrders from '../../common/useLoadOrders';
 import useCreateOrderFlow from '../../common/useCreateOrderFlow';
 import useSession from '../../common/useSession';
@@ -15,6 +16,15 @@ const { Header, Content, Sider } = Layout;
 
 const HomeContainer = () => {
   const { sessionLoading, userName, userGroup, logout } = useSession();
+  const [currentUserName, setCurrentUserName] = useState('');
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+
+  useEffect(() => {
+    if (userName) {
+      setCurrentUserName(userName);
+    }
+  }, [userName]);
+
   const { orders, loading, loadOrders, handleStatusChange } = useLoadOrders();
   const [form] = Form.useForm();
 
@@ -81,6 +91,13 @@ const HomeContainer = () => {
             </Button>
           )}
           <Button
+            type="default"
+            icon={<UserOutlined />}
+            onClick={() => setIsProfileModalOpen(true)}
+          >
+            Perfil
+          </Button>
+          <Button
             type="text"
             icon={<LogoutOutlined />}
             onClick={logout}
@@ -116,7 +133,7 @@ const HomeContainer = () => {
           <Content className="home-content home-content--operator">
             <div className="home-content__welcome">
               <h2 className="home-content__welcome--title">
-                Olá, {userName}!
+                Olá, {currentUserName}!
               </h2>
               <p className="home-content__welcome--desc">
                 Consola de Operador - Faça a gestão das encomendas pendentes do sistema.
@@ -132,7 +149,7 @@ const HomeContainer = () => {
         <Content className="home-content home-content--client">
           <div className="home-content__welcome">
             <h2 className="home-content__welcome--title">
-              Olá, {userName}!
+              Olá, {currentUserName}!
             </h2>
             <p className="home-content__welcome--desc">Gere e consulta as tuas encomendas em tempo real.</p>
           </div>
@@ -174,6 +191,12 @@ const HomeContainer = () => {
         searchingMap={searchingMap}
         handleMapSearch={handleMapSearch}
         mapRef={mapRef}
+      />
+
+      <ProfileModal
+        open={isProfileModalOpen}
+        onCancel={() => setIsProfileModalOpen(false)}
+        onUpdateSuccess={(newName) => setCurrentUserName(newName)}
       />
     </Layout>
   );

@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Layout, Button, Spin, Row, Col, Form, Card, Tag, Menu } from 'antd';
-import { ArrowLeftOutlined, EditOutlined, OrderedListOutlined, UserSwitchOutlined } from '@ant-design/icons';
+import { ArrowLeftOutlined, EditOutlined, OrderedListOutlined, UserSwitchOutlined, UserOutlined } from '@ant-design/icons';
 import useSession from '../../common/useSession';
 import useOrderDetails from '../../common/useOrderDetails';
 
@@ -10,6 +10,7 @@ import OrderDetailsMap from '../../components/OrderDetailsComponent/OrderDetails
 import OrderDecisionPanel from '../../components/OrderDetailsComponent/OrderDecisionPanel';
 import EditOrderModal from '../../components/EditOrderModalComponent';
 import MapModal from '../../components/MapModalComponent';
+import ProfileModal from '../../components/ProfileModalComponent';
 
 import useEditOrderFlow from '../../common/useEditOrderFlow';
 import './index.less';
@@ -49,6 +50,15 @@ const formatDuration = (totalMinutes) => {
 
 const OrderDetailsContainer = () => {
   const { sessionLoading, userName, userGroup, logout } = useSession();
+  const [currentUserName, setCurrentUserName] = useState('');
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+
+  useEffect(() => {
+    if (userName) {
+      setCurrentUserName(userName);
+    }
+  }, [userName]);
+
   const [uid, setUid] = useState('');
 
   useEffect(() => {
@@ -450,8 +460,17 @@ const OrderDetailsContainer = () => {
         <div className="order-details-header__logo-container">
           <img src="/public/images/logo_deliberatis.png" alt="Deliberatis Logo" className="order-details-header__logo" />
         </div>
-        <div className="order-details-header__username">
-          Olá, {userName}
+        <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+          <div className="order-details-header__username">
+            Olá, {currentUserName}
+          </div>
+          <Button
+            type="default"
+            icon={<UserOutlined />}
+            onClick={() => setIsProfileModalOpen(true)}
+          >
+            Perfil
+          </Button>
         </div>
       </Header>
 
@@ -709,6 +728,11 @@ const OrderDetailsContainer = () => {
           handleMapSearch={handleMapSearch}
         />
       </Layout>
+      <ProfileModal
+        open={isProfileModalOpen}
+        onCancel={() => setIsProfileModalOpen(false)}
+        onUpdateSuccess={(newName) => setCurrentUserName(newName)}
+      />
     </Layout>
   );
 };

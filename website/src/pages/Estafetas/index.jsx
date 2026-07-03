@@ -3,14 +3,23 @@ import { Layout, Menu, Button, Spin, Form, Input, Card, Row, Col, Select, Tag, S
 import { LogoutOutlined, OrderedListOutlined, UserSwitchOutlined, PlusOutlined, UserOutlined, PhoneOutlined, CarOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import useSession from '../../common/useSession';
-
 import useCouriers from '../../common/useCouriers';
+import ProfileModal from '../../components/ProfileModalComponent';
 import './index.less';
 
 const { Header, Content, Sider } = Layout;
 
 const EstafetasContainer = () => {
   const { sessionLoading, userName, logout } = useSession(['operador']);
+  const [currentUserName, setCurrentUserName] = useState('');
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+
+  useEffect(() => {
+    if (userName) {
+      setCurrentUserName(userName);
+    }
+  }, [userName]);
+
   const [form] = Form.useForm();
   const [searchText, setSearchText] = useState('');
 
@@ -208,6 +217,13 @@ const EstafetasContainer = () => {
 
         <div className="estafetas-header__actions">
           <Button
+            type="default"
+            icon={<UserOutlined />}
+            onClick={() => setIsProfileModalOpen(true)}
+          >
+            Perfil
+          </Button>
+          <Button
             type="text"
             icon={<LogoutOutlined />}
             onClick={logout}
@@ -242,7 +258,7 @@ const EstafetasContainer = () => {
         <Content className="estafetas-content">
           <div className="estafetas-content__welcome">
             <h2 className="estafetas-content__welcome--title">
-              Olá, {userName}!
+              Olá, {currentUserName}!
             </h2>
             <p className="estafetas-content__welcome--desc">
               Consola de Operador - Faça a gestão e registo dos estafetas da plataforma.
@@ -387,6 +403,11 @@ const EstafetasContainer = () => {
           </Row>
         </Content>
       </Layout>
+      <ProfileModal
+        open={isProfileModalOpen}
+        onCancel={() => setIsProfileModalOpen(false)}
+        onUpdateSuccess={(newName) => setCurrentUserName(newName)}
+      />
     </Layout>
   );
 };
