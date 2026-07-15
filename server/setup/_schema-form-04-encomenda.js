@@ -8,7 +8,7 @@
 
 import {_val, _form} from "@netuno/server-types";
 
-_form.createIfNotExists(
+_form.sync(
 	_val.map()
 		.set("big", false)
 		.set("control_active", true)
@@ -30,7 +30,7 @@ _form.createIfNotExists(
 		.set("title", "Encomenda")
 		.set("uid", "cb45ff07-780d-40fa-968b-06cd6ef6c387")
 );
-_form.createComponentIfNotExists(
+_form.syncField(
 	"cb45ff07-780d-40fa-968b-06cd6ef6c387",
 	_val.map()
 		.set("colspan", 0)
@@ -61,7 +61,7 @@ _form.createComponentIfNotExists(
 		.set("x", 1)
 		.set("y", 11)
 );
-_form.createComponentIfNotExists(
+_form.syncField(
 	"cb45ff07-780d-40fa-968b-06cd6ef6c387",
 	_val.map()
 		.set("colspan", 0)
@@ -92,7 +92,7 @@ _form.createComponentIfNotExists(
 		.set("x", 1)
 		.set("y", 1)
 );
-_form.createComponentIfNotExists(
+_form.syncField(
 	"cb45ff07-780d-40fa-968b-06cd6ef6c387",
 	_val.map()
 		.set("colspan", 0)
@@ -123,7 +123,7 @@ _form.createComponentIfNotExists(
 		.set("x", 1)
 		.set("y", 9)
 );
-_form.createComponentIfNotExists(
+_form.syncField(
 	"cb45ff07-780d-40fa-968b-06cd6ef6c387",
 	_val.map()
 		.set("colspan", 0)
@@ -154,7 +154,7 @@ _form.createComponentIfNotExists(
 		.set("x", 1)
 		.set("y", 2)
 );
-_form.createComponentIfNotExists(
+_form.syncField(
 	"cb45ff07-780d-40fa-968b-06cd6ef6c387",
 	_val.map()
 		.set("colspan", 0)
@@ -185,7 +185,7 @@ _form.createComponentIfNotExists(
 		.set("x", 1)
 		.set("y", 8)
 );
-_form.createComponentIfNotExists(
+_form.syncField(
 	"cb45ff07-780d-40fa-968b-06cd6ef6c387",
 	_val.map()
 		.set("colspan", 0)
@@ -216,7 +216,7 @@ _form.createComponentIfNotExists(
 		.set("x", 1)
 		.set("y", 13)
 );
-_form.createComponentIfNotExists(
+_form.syncField(
 	"cb45ff07-780d-40fa-968b-06cd6ef6c387",
 	_val.map()
 		.set("colspan", 0)
@@ -233,7 +233,7 @@ _form.createComponentIfNotExists(
 		.set("tdheight", 0)
 		.set("tdwidth", 0)
 		.set("title", "Latitude")
-		.set("type", "textfloat")
+		.set("type", "decimal")
 		.set("uid", "ee36f0ec-571b-41c9-9e32-ff5e6344c5f1")
 		.set("unique", false)
 		.set("user_id", 0)
@@ -247,7 +247,7 @@ _form.createComponentIfNotExists(
 		.set("x", 1)
 		.set("y", 12)
 );
-_form.createComponentIfNotExists(
+_form.syncField(
 	"cb45ff07-780d-40fa-968b-06cd6ef6c387",
 	_val.map()
 		.set("colspan", 0)
@@ -264,7 +264,7 @@ _form.createComponentIfNotExists(
 		.set("tdheight", 0)
 		.set("tdwidth", 0)
 		.set("title", "Longitude")
-		.set("type", "textfloat")
+		.set("type", "decimal")
 		.set("uid", "5f806608-704b-497d-bda5-553d9753b024")
 		.set("unique", false)
 		.set("user_id", 0)
@@ -278,7 +278,7 @@ _form.createComponentIfNotExists(
 		.set("x", 2)
 		.set("y", 12)
 );
-_form.createComponentIfNotExists(
+_form.syncField(
 	"cb45ff07-780d-40fa-968b-06cd6ef6c387",
 	_val.map()
 		.set("colspan", 0)
@@ -309,7 +309,7 @@ _form.createComponentIfNotExists(
 		.set("x", 1)
 		.set("y", 14)
 );
-_form.createComponentIfNotExists(
+_form.syncField(
 	"cb45ff07-780d-40fa-968b-06cd6ef6c387",
 	_val.map()
 		.set("colspan", 0)
@@ -340,7 +340,7 @@ _form.createComponentIfNotExists(
 		.set("x", 1)
 		.set("y", 5)
 );
-_form.createComponentIfNotExists(
+_form.syncField(
 	"cb45ff07-780d-40fa-968b-06cd6ef6c387",
 	_val.map()
 		.set("colspan", 0)
@@ -371,7 +371,7 @@ _form.createComponentIfNotExists(
 		.set("x", 1)
 		.set("y", 7)
 );
-_form.createComponentIfNotExists(
+_form.syncField(
 	"cb45ff07-780d-40fa-968b-06cd6ef6c387",
 	_val.map()
 		.set("colspan", 0)
@@ -402,7 +402,7 @@ _form.createComponentIfNotExists(
 		.set("x", 1)
 		.set("y", 10)
 );
-_form.createComponentIfNotExists(
+_form.syncField(
 	"cb45ff07-780d-40fa-968b-06cd6ef6c387",
 	_val.map()
 		.set("colspan", 0)
@@ -419,7 +419,7 @@ _form.createComponentIfNotExists(
 		.set("tdheight", 0)
 		.set("tdwidth", 0)
 		.set("title", "preco")
-		.set("type", "textfloat")
+		.set("type", "decimal")
 		.set("uid", "a99120df-811c-4bd6-b595-ed4780fd48b9")
 		.set("unique", false)
 		.set("user_id", 0)
@@ -433,7 +433,7 @@ _form.createComponentIfNotExists(
 		.set("x", 1)
 		.set("y", 3)
 );
-_form.createComponentIfNotExists(
+_form.syncField(
 	"cb45ff07-780d-40fa-968b-06cd6ef6c387",
 	_val.map()
 		.set("colspan", 0)

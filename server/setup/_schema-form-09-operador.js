@@ -8,7 +8,7 @@
 
 import {_val, _form} from "@netuno/server-types";
 
-_form.createIfNotExists(
+_form.sync(
 	_val.map()
 		.set("big", false)
 		.set("control_active", true)
@@ -30,10 +30,11 @@ _form.createIfNotExists(
 		.set("title", "Operador")
 		.set("uid", "b13272b6-eb53-4a07-802d-a028108a7b69")
 );
-_form.createComponentIfNotExists(
+_form.syncField(
 	"b13272b6-eb53-4a07-802d-a028108a7b69",
 	_val.map()
 		.set("colspan", 0)
+		.set("description", "")
 		.set("firebase", "")
 		.set("group_id", 0)
 		.set("height", 0)
@@ -60,10 +61,11 @@ _form.createComponentIfNotExists(
 		.set("x", 1)
 		.set("y", 5)
 );
-_form.createComponentIfNotExists(
+_form.syncField(
 	"b13272b6-eb53-4a07-802d-a028108a7b69",
 	_val.map()
 		.set("colspan", 0)
+		.set("description", "")
 		.set("firebase", "")
 		.set("group_id", 0)
 		.set("height", 0)
@@ -90,7 +92,7 @@ _form.createComponentIfNotExists(
 		.set("x", 1)
 		.set("y", 3)
 );
-_form.createComponentIfNotExists(
+_form.syncField(
 	"b13272b6-eb53-4a07-802d-a028108a7b69",
 	_val.map()
 		.set("colspan", 0)
@@ -121,10 +123,11 @@ _form.createComponentIfNotExists(
 		.set("x", 1)
 		.set("y", 4)
 );
-_form.createComponentIfNotExists(
+_form.syncField(
 	"b13272b6-eb53-4a07-802d-a028108a7b69",
 	_val.map()
 		.set("colspan", 0)
+		.set("description", "")
 		.set("firebase", "")
 		.set("group_id", 0)
 		.set("height", 0)
@@ -151,10 +154,11 @@ _form.createComponentIfNotExists(
 		.set("x", 1)
 		.set("y", 1)
 );
-_form.createComponentIfNotExists(
+_form.syncField(
 	"b13272b6-eb53-4a07-802d-a028108a7b69",
 	_val.map()
 		.set("colspan", 0)
+		.set("description", "")
 		.set("firebase", "")
 		.set("group_id", 0)
 		.set("height", 0)

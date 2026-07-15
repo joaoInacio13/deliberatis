@@ -8,7 +8,7 @@
 
 import {_val, _form} from "@netuno/server-types";
 
-_form.createIfNotExists(
+_form.sync(
 	_val.map()
 		.set("big", false)
 		.set("control_active", true)
@@ -30,7 +30,7 @@ _form.createIfNotExists(
 		.set("title", "Cliente")
 		.set("uid", "d800dae0-3567-4f98-a38c-05ea7b747282")
 );
-_form.createComponentIfNotExists(
+_form.syncField(
 	"d800dae0-3567-4f98-a38c-05ea7b747282",
 	_val.map()
 		.set("colspan", 0)
@@ -61,7 +61,7 @@ _form.createComponentIfNotExists(
 		.set("x", 1)
 		.set("y", 5)
 );
-_form.createComponentIfNotExists(
+_form.syncField(
 	"d800dae0-3567-4f98-a38c-05ea7b747282",
 	_val.map()
 		.set("colspan", 0)
@@ -92,7 +92,7 @@ _form.createComponentIfNotExists(
 		.set("x", 1)
 		.set("y", 3)
 );
-_form.createComponentIfNotExists(
+_form.syncField(
 	"d800dae0-3567-4f98-a38c-05ea7b747282",
 	_val.map()
 		.set("colspan", 0)
@@ -123,7 +123,7 @@ _form.createComponentIfNotExists(
 		.set("x", 1)
 		.set("y", 4)
 );
-_form.createComponentIfNotExists(
+_form.syncField(
 	"d800dae0-3567-4f98-a38c-05ea7b747282",
 	_val.map()
 		.set("colspan", 0)
@@ -154,7 +154,7 @@ _form.createComponentIfNotExists(
 		.set("x", 1)
 		.set("y", 1)
 );
-_form.createComponentIfNotExists(
+_form.syncField(
 	"d800dae0-3567-4f98-a38c-05ea7b747282",
 	_val.map()
 		.set("colspan", 0)

@@ -8,7 +8,7 @@
 
 import {_val, _form} from "@netuno/server-types";
 
-_form.createIfNotExists(
+_form.sync(
 	_val.map()
 		.set("big", false)
 		.set("control_active", true)
@@ -31,7 +31,7 @@ _form.createIfNotExists(
 		.set("title", "Ve\u00EDculo")
 		.set("uid", "c2d86eb3-0ef7-40f2-ba77-e82956a08021")
 );
-_form.createComponentIfNotExists(
+_form.syncField(
 	"c2d86eb3-0ef7-40f2-ba77-e82956a08021",
 	_val.map()
 		.set("colspan", 0)
@@ -62,7 +62,7 @@ _form.createComponentIfNotExists(
 		.set("x", 1)
 		.set("y", 1)
 );
-_form.createComponentIfNotExists(
+_form.syncField(
 	"c2d86eb3-0ef7-40f2-ba77-e82956a08021",
 	_val.map()
 		.set("colspan", 0)
@@ -79,7 +79,7 @@ _form.createComponentIfNotExists(
 		.set("tdheight", 0)
 		.set("tdwidth", 0)
 		.set("title", "Velocidade")
-		.set("type", "textnum")
+		.set("type", "integer")
 		.set("uid", "71684800-f2f0-4659-a994-722e9e6d02a6")
 		.set("unique", false)
 		.set("user_id", 0)

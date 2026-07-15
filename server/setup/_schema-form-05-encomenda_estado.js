@@ -8,7 +8,7 @@
 
 import {_val, _form} from "@netuno/server-types";
 
-_form.createIfNotExists(
+_form.sync(
 	_val.map()
 		.set("big", false)
 		.set("control_active", true)
@@ -31,7 +31,7 @@ _form.createIfNotExists(
 		.set("title", "Estado")
 		.set("uid", "62849d7a-ee33-4153-8046-0eab633a2f85")
 );
-_form.createComponentIfNotExists(
+_form.syncField(
 	"62849d7a-ee33-4153-8046-0eab633a2f85",
 	_val.map()
 		.set("colspan", 0)
