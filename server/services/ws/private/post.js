@@ -1,7 +1,16 @@
-import { _user } from "@netuno/server-types";
+import { _user, _header, _out } from "@netuno/server-types";
 
-// Netuno validates the JWT auth token passed in the query parameter "?auth=TOKEN"
-// If the user ID is valid (> 0), the connection handshake is accepted.
-if (_user.id() <= 0) {
-  throw new Error("Sessão inválida ou expirada.");
+let logged = false;
+
+try {
+  if (_user.id() > 0) {
+    logged = true;
+  }
+} catch (e) {
+  // Se _user.id() falhar por não haver autenticação
+}
+
+if (!logged) {
+  _header.status(401);
+  _out.close();
 }
