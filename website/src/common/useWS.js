@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import _ws from "@netuno/ws-client";
 
-function useWS() {
+function useWS(onMessage) {
   const [connected, setConnected] = useState(false);
   const [connecting, setConnecting] = useState(false);
 
@@ -51,6 +51,7 @@ function useWS() {
       },
       message: (data, event) => {
         console.log('ws message received', { data, event });
+        onMessage && onMessage(data, event);
       }
     });
 

@@ -11,6 +11,7 @@ import OrderDecisionPanel from '../../components/OrderDetailsComponent/OrderDeci
 import EditOrderModal from '../../components/EditOrderModalComponent';
 import MapModal from '../../components/MapModalComponent';
 import ProfileModal from '../../components/ProfileModalComponent';
+import useWS from '../../common/useWS';
 
 import useEditOrderFlow from '../../common/useEditOrderFlow';
 import './index.less';
@@ -60,6 +61,7 @@ const OrderDetailsContainer = () => {
   }, [userName]);
 
   const [uid, setUid] = useState('');
+  const [courierCoords, setCourierCoords] = useState(null);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -195,6 +197,8 @@ const OrderDetailsContainer = () => {
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const markerInstanceRef = useRef(null);
+  const courierMarkerRef = useRef(null);
+  const routeLineRef = useRef(null);
 
   const procMapRef = useRef(null);
   const procMapInstanceRef = useRef(null);
@@ -212,6 +216,8 @@ const OrderDetailsContainer = () => {
         procMapInstanceRef.current.remove();
         procMapInstanceRef.current = null;
       }
+      courierMarkerRef.current = null;
+      routeLineRef.current = null;
     };
   }, []);
 

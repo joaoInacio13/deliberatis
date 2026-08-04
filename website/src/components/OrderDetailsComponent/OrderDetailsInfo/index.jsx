@@ -88,12 +88,12 @@ const OrderDetailsInfo = ({ order, formatDate }) => {
             </span>
           ) : (
             <a 
-              href={`https://tracking.deliberatis.pt/order/${order.uid}`} 
+              href={`/public/tracking.html?uid=${order.uid}`} 
               target="_blank" 
               rel="noopener noreferrer" 
               style={{ fontSize: '15px', color: '#5b5ce1', fontWeight: '600' }}
             >
-              https://tracking.deliberatis.pt/order/{order.uid}
+              {window.location.origin}/public/tracking.html?uid={order.uid}
             </a>
           )}
         </div>

@@ -5,6 +5,7 @@ import AuthContainer from "./pages/Auth";
 import HomeContainer from "./pages/Home";
 import OrderDetailsContainer from "./pages/OrderDetails";
 import EstafetasContainer from "./pages/Estafetas";
+import TrackingContainer from "./pages/Tracking";
 
 import { ConfigProvider } from "antd";
 import antLocale_ptPT from "antd/lib/locale/pt_PT";
@@ -99,6 +100,26 @@ if (detailsContainer) {
       locale={antLocale_ptPT}
     >
       <OrderDetailsContainer />
+    </ConfigProvider>
+  );
+}
+
+const trackingDiv = document.getElementById("app-tracking");
+const trackingContainer = trackingDiv ? createRoot(trackingDiv) : false;
+
+if (trackingContainer) {
+  trackingContainer.render(
+    <ConfigProvider
+      theme={{
+        token: {
+          colorPrimary: '#5b5ce1',
+          colorLink: '#5b5ce1',
+          borderRadius: 5,
+        }
+      }}
+      locale={antLocale_ptPT}
+    >
+      <TrackingContainer />
     </ConfigProvider>
   );
 }
