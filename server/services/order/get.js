@@ -33,7 +33,6 @@ function geocode(address) {
       };
     }
   } catch (e) {
-    // Fail silently
   }
   return null;
 }
@@ -49,7 +48,6 @@ function geocodePostalCode(code) {
       };
     }
   } catch (e) {
-    // Fail silently
   }
   return null;
 }
@@ -90,9 +88,9 @@ try {
       if (isOperator) {
         orderQuery = _db.query(
           "SELECT e.id, e.uid, e.lastchange_time, e.descricao, e.preco, e.porta, e.andar, e.telefone, e.observacoes, " +
-          "e.latitude, e.longitude, e.estafeta_id, e.motivo_rejeicao, " +
+          "e.latitude, e.longitude, e.estafeta_id, e.motivo_rejeicao, e.data_entrega, " +
           "s.nome AS estado, p.nome AS pagamento, cp.codigo AS codigo_postal, cp.rua, c.nome AS cidade, " +
-          "est.nome AS estafeta_nome " +
+          "est.nome AS estafeta_nome, est.latitude AS estafeta_latitude, est.longitude AS estafeta_longitude " +
           "FROM encomenda e " +
           "LEFT JOIN encomenda_estado s ON e.estado_id = s.id " +
           "LEFT JOIN pagamento p ON e.pagamento_id = p.id " +
@@ -105,9 +103,9 @@ try {
       } else {
         orderQuery = _db.query(
           "SELECT e.id, e.uid, e.lastchange_time, e.descricao, e.preco, e.porta, e.andar, e.telefone, e.observacoes, " +
-          "e.latitude, e.longitude, e.estafeta_id, e.motivo_rejeicao, " +
+          "e.latitude, e.longitude, e.estafeta_id, e.motivo_rejeicao, e.data_entrega, " +
           "s.nome AS estado, p.nome AS pagamento, cp.codigo AS codigo_postal, cp.rua, c.nome AS cidade, " +
-          "est.nome AS estafeta_nome " +
+          "est.nome AS estafeta_nome, est.latitude AS estafeta_latitude, est.longitude AS estafeta_longitude " +
           "FROM encomenda e " +
           "LEFT JOIN encomenda_estado s ON e.estado_id = s.id " +
           "LEFT JOIN pagamento p ON e.pagamento_id = p.id " +
@@ -170,6 +168,9 @@ try {
             .set("longitude", longitude)
             .set("estafeta_id", row.getInt("estafeta_id"))
             .set("estafeta_nome", row.getString("estafeta_nome") || "")
+            .set("estafeta_latitude", row.getDouble("estafeta_latitude"))
+            .set("estafeta_longitude", row.getDouble("estafeta_longitude"))
+            .set("data_entrega", row.getString("data_entrega") || "")
             .set("motivo_rejeicao", row.getString("motivo_rejeicao") || "")
           )
         );

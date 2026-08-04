@@ -9,7 +9,6 @@ try {
     _header.status(400);
     _out.json(_val.map().set("result", false).set("error", "Código único da encomenda e o novo estado são obrigatórios."));
   } else {
-    // 1. Verifica se o utilizador autenticado é um operador
     const operatorQuery = _db.query(
       "SELECT id FROM operador WHERE user_id = ? AND active = true",
       userId
@@ -19,7 +18,6 @@ try {
       _header.status(403);
       _out.json(_val.map().set("result", false).set("error", "Apenas operadores podem atualizar o estado das encomendas."));
     } else {
-      // 2. Procura a encomenda pelo UID
       const orderQuery = _db.query(
         "SELECT id FROM encomenda WHERE uid = ? AND active = true",
         uid
@@ -31,7 +29,6 @@ try {
       } else {
         const orderId = orderQuery.get(0).getInt("id");
 
-        // 3. Procura o ID do estado correspondente
         const statusQuery = _db.query(
           "SELECT id FROM encomenda_estado WHERE nome = ? AND active = true",
           estado
@@ -43,11 +40,17 @@ try {
         } else {
           const statusId = statusQuery.get(0).getInt("id");
 
-          // 4. Atualiza o estado da encomenda
-          _db.execute(
-            "UPDATE encomenda SET estado_id = ? WHERE id = ?",
-            statusId, orderId
-          );
+          if (estado === "Entregue") {
+            _db.execute(
+              "UPDATE encomenda SET estado_id = ?, data_entrega = CURRENT_TIMESTAMP WHERE id = ?",
+              statusId, orderId
+            );
+          } else {
+            _db.execute(
+              "UPDATE encomenda SET estado_id = ? WHERE id = ?",
+              statusId, orderId
+            );
+          }
 
           _out.json(_val.map()
             .set("result", true)

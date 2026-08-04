@@ -27,6 +27,7 @@ Table encomenda {
   andar varchar(250) [not null, note: 'andar']
   cliente_id int [not null, ref: > cliente.id, note: 'cliente']
   codigo_postal_id int [not null, ref: > codigo_postal.id, note: 'codigo_postal']
+  data_entrega timestamp [note: 'DataDeEntrega']
   descricao text [not null, note: 'descricao']
   estado_id int [not null, ref: > encomenda_estado.id, note: 'estado']
   estafeta_id int [ref: > estafeta.id, note: 'Estafeta']
