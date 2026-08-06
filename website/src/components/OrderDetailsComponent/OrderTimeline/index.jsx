@@ -9,8 +9,8 @@ const OrderTimeline = ({ statusIndex, statusText, rejectionReason }) => {
         Estado do Pedido
       </h3>
       <Steps
-        current={isRejected ? 0 : statusIndex}
-        status={isRejected ? 'error' : undefined}
+        current={statusText === 'Entregue' ? 3 : (isRejected ? 0 : statusIndex)}
+        status={isRejected ? 'error' : (statusText === 'Entregue' ? 'finish' : undefined)}
         items={[
           { 
             title: <span style={{ fontSize: '16px', fontWeight: '600' }}>{isRejected ? 'Rejeitada' : 'Submetida'}</span>, 
@@ -22,7 +22,8 @@ const OrderTimeline = ({ statusIndex, statusText, rejectionReason }) => {
           },
           { 
             title: <span style={{ fontSize: '16px', fontWeight: '600' }}>Entregue</span>, 
-            description: <span style={{ fontSize: '13px' }}>Entregue com sucesso</span> 
+            description: <span style={{ fontSize: '13px' }}>Entregue com sucesso</span>,
+            className: statusText === 'Entregue' ? 'step-entregue-green' : ''
           }
         ]}
       />
