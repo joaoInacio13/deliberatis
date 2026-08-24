@@ -86,7 +86,7 @@ const OrdersTableCliente = ({ orders, handleOpenCreateModal }) => {
       render: (_, record) => (
         <Button
           type="primary"
-          onClick={() => window.location.href = `/public/order-details.html?uid=${record.uid}`}
+          onClick={() => window.location.href = `/order-details?uid=${record.uid}`}
           style={{ fontWeight: '600', backgroundColor: '#5b5ce1', borderColor: '#5b5ce1', borderRadius: '6px' }}
         >
           Mais Detalhes

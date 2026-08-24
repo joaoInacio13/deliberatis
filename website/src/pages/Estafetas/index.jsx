@@ -245,7 +245,7 @@ const EstafetasContainer = () => {
             selectedKeys={['estafetas']}
             onClick={(e) => {
               if (e.key === 'pedidos') {
-                window.location.href = '/public/home.html';
+                window.location.href = '/home';
               }
             }}
             className="estafetas-sider__menu"

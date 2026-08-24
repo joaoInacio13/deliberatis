@@ -120,7 +120,7 @@ const HomeContainer = () => {
               selectedKeys={['pedidos']}
               onClick={(e) => {
                 if (e.key === 'estafetas') {
-                  window.location.href = '/public/estafetas.html';
+                  window.location.href = '/estafetas';
                 }
               }}
               className="home-sider__menu"

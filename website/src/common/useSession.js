@@ -9,13 +9,13 @@ const useSession = (allowedGroups = null) => {
 
   const logout = () => {
     localStorage.removeItem('user_session_token');
-    window.location.href = "/public/auth.html";
+    window.location.href = "/auth";
   };
 
   useEffect(() => {
     const token = localStorage.getItem('user_session_token');
     if (!token) {
-      window.location.href = "/public/auth.html";
+      window.location.href = "/auth";
       return;
     }
 
@@ -35,7 +35,7 @@ const useSession = (allowedGroups = null) => {
               message: 'Não Autorizado',
               description: 'Não tens permissão para aceder a esta página.'
             });
-            window.location.href = "/public/home.html";
+            window.location.href = "/home";
           } else {
             setSessionLoading(false);
           }

@@ -40,7 +40,7 @@ const useOrderDetails = (uid, sessionLoading, isOperator) => {
             description: 'Encomenda não encontrada.'
           });
           setTimeout(() => {
-            window.location.href = "/public/home.html";
+            window.location.href = "/home";
           }, 2000);
         }
       },

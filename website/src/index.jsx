@@ -1,6 +1,7 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 import _service from '@netuno/service-client';
+import { BrowserRouter, Routes, Route, useNavigate, Navigate } from 'react-router';
 import AuthContainer from "./pages/Auth";
 import HomeContainer from "./pages/Home";
 import OrderDetailsContainer from "./pages/OrderDetails";
@@ -10,18 +11,29 @@ import TrackingContainer from "./pages/Tracking";
 import { ConfigProvider } from "antd";
 import antLocale_ptPT from "antd/lib/locale/pt_PT";
 
-// Configura o prefixo de acesso à API de serviços do Netuno
 _service.config({
   prefix: typeof netuno !== 'undefined' ? netuno.config.urlServices : '/services/'
 });
 
-// Deteta se o elemento de base da Autenticação está presente no DOM (ex: na página auth.html pública)
-const authDiv = document.getElementById("app-auth");
-const authContainer = authDiv ? createRoot(authDiv) : false;
+const App = () => {
+  const navigate = useNavigate();
 
-// Inicializa a interface do Portal de Autenticação pública
-if (authContainer) {
-  authContainer.render(
+  return (
+    <Routes>
+      <Route path="/" element={<Navigate to="/home" replace />} />
+      <Route path="/auth" element={<AuthContainer onLoginSuccess={() => navigate('/home')} />} />
+      <Route path="/home" element={<HomeContainer />} />
+      <Route path="/estafetas" element={<EstafetasContainer />} />
+      <Route path="/order-details" element={<OrderDetailsContainer />} />
+      <Route path="/tracking" element={<TrackingContainer />} />
+    </Routes>
+  );
+};
+
+const appDiv = document.getElementById("app");
+if (appDiv) {
+  const root = createRoot(appDiv);
+  root.render(
     <ConfigProvider
       theme={{
         token: {
@@ -32,96 +44,9 @@ if (authContainer) {
       }}
       locale={antLocale_ptPT}
     >
-      {/* Ao obter sucesso no Login, redireciona o utilizador para a página pública home.html */}
-      <AuthContainer onLoginSuccess={() => {
-        window.location.href = "/public/home.html";
-      }} />
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
     </ConfigProvider>
   );
 }
-
-// Deteta se o elemento de base do Dashboard de Encomendas está presente no DOM (ex: na página home.html)
-const homeDiv = document.getElementById("app-home");
-const homeContainer = homeDiv ? createRoot(homeDiv) : false;
-
-// Inicializa a interface do Dashboard de Encomendas pública
-if (homeContainer) {
-  homeContainer.render(
-    <ConfigProvider
-      theme={{
-        token: {
-          colorPrimary: '#5b5ce1',
-          colorLink: '#5b5ce1',
-          borderRadius: 5,
-        }
-      }}
-      locale={antLocale_ptPT}
-    >
-      <HomeContainer />
-    </ConfigProvider>
-  );
-}
-
-// Deteta se o elemento de base dos Estafetas está presente no DOM (ex: na página estafetas.html)
-const estafetasDiv = document.getElementById("app-estafetas");
-const estafetasContainer = estafetasDiv ? createRoot(estafetasDiv) : false;
-
-if (estafetasContainer) {
-  estafetasContainer.render(
-    <ConfigProvider
-      theme={{
-        token: {
-          colorPrimary: '#5b5ce1',
-          colorLink: '#5b5ce1',
-          borderRadius: 5,
-        }
-      }}
-      locale={antLocale_ptPT}
-    >
-      <EstafetasContainer />
-    </ConfigProvider>
-  );
-}
-
-// Deteta se o elemento de base dos Detalhes da Encomenda está presente no DOM (ex: na página order-details.html)
-const detailsDiv = document.getElementById("app-order-details");
-const detailsContainer = detailsDiv ? createRoot(detailsDiv) : false;
-
-if (detailsContainer) {
-  detailsContainer.render(
-    <ConfigProvider
-      theme={{
-        token: {
-          colorPrimary: '#5b5ce1',
-          colorLink: '#5b5ce1',
-          borderRadius: 5,
-        }
-      }}
-      locale={antLocale_ptPT}
-    >
-      <OrderDetailsContainer />
-    </ConfigProvider>
-  );
-}
-
-const trackingDiv = document.getElementById("app-tracking");
-const trackingContainer = trackingDiv ? createRoot(trackingDiv) : false;
-
-if (trackingContainer) {
-  trackingContainer.render(
-    <ConfigProvider
-      theme={{
-        token: {
-          colorPrimary: '#5b5ce1',
-          colorLink: '#5b5ce1',
-          borderRadius: 5,
-        }
-      }}
-      locale={antLocale_ptPT}
-    >
-      <TrackingContainer />
-    </ConfigProvider>
-  );
-}
-
-

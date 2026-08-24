@@ -492,10 +492,10 @@ const OrderDetailsContainer = () => {
               selectedKeys={['pedidos']}
               onClick={(e) => {
                 if (e.key === 'pedidos') {
-                  window.location.href = '/public/home.html';
+                  window.location.href = '/home';
                 }
                 if (e.key === 'estafetas') {
-                  window.location.href = '/public/estafetas.html';
+                  window.location.href = '/estafetas';
                 }
               }}
               className="order-details-sider__menu"
@@ -512,7 +512,7 @@ const OrderDetailsContainer = () => {
               type="primary" 
               size="large"
               icon={<ArrowLeftOutlined />} 
-              onClick={() => window.location.href = "/public/home.html"}
+              onClick={() => window.location.href = "/home"}
               className="order-details-content__back-btn"
             >
               Voltar
