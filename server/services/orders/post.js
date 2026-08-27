@@ -1,4 +1,4 @@
-import { _db, _val, _req, _out, _user } from "@netuno/server-types";
+import { _db, _val, _req, _out, _user, _smtp, _log } from "@netuno/server-types";
 
 try {
   // O Netuno valida o token JWT de forma transparente
@@ -136,6 +136,23 @@ try {
               .set("longitude", longitude)
               .set("active", true)
           );
+
+          const newOrderQuery = _db.query("SELECT uid FROM encomenda WHERE id = ?", id);
+          if (newOrderQuery.size() > 0) {
+            const orderUid = newOrderQuery.get(0).getString("uid");
+            const userMailQuery = _db.query("SELECT mail FROM netuno_user WHERE id = ?", userId);
+            if (userMailQuery.size() > 0) {
+              const clientMail = userMailQuery.get(0).getString("mail");
+              try {
+                _smtp.init().to(clientMail)
+                  .subject("Encomenda Registada - #" + orderUid.substring(0, 8))
+                  .html("<h2>Recebemos o teu pedido!</h2><p>A tua encomenda <strong>#" + orderUid + "</strong> (" + descricao + ") foi registada com sucesso e está a aguardar aprovação pelo operador.</p><p>Valor: <strong>" + preco.toFixed(2) + "€</strong></p><br><p>Obrigado,<br>Equipa Deliberatis</p>")
+                  .send();
+              } catch (smtpError) {
+                _log.error("SMTP error during order creation: " + smtpError.message);
+              }
+            }
+          }
 
           _out.json(_val.map()
             .set("result", true)

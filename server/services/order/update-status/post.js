@@ -1,4 +1,4 @@
-import { _db, _val, _req, _out, _user, _header } from "@netuno/server-types";
+import { _db, _val, _req, _out, _user, _header, _smtp, _log } from "@netuno/server-types";
 
 try {
   const userId = _user.id();
@@ -100,6 +100,33 @@ try {
 
   // Perform update in encomenda table
   _db.update("encomenda", orderRow.getInt("id"), updateMap);
+
+  const clientQuery = _db.query(
+    "SELECT nu.mail, e.descricao FROM encomenda e " +
+    "JOIN cliente c ON e.cliente_id = c.id " +
+    "JOIN netuno_user nu ON c.user_id = nu.id " +
+    "WHERE e.uid = ?",
+    uid
+  );
+  if (clientQuery.size() > 0) {
+    const clientMail = clientQuery.get(0).getString("mail");
+    const descricao = clientQuery.get(0).getString("descricao");
+    try {
+      if (targetStatus === "Em Trânsito") {
+        _smtp.init().to(clientMail)
+          .subject("A tua encomenda está a caminho! - #" + uid.substring(0, 8))
+          .html("<h2>Boas notícias!</h2><p>A tua encomenda <strong>" + descricao + "</strong> está a caminho!</p><p>Podes acompanhar a entrega em tempo real através do link de rastreio: <a href='http://localhost:9000/tracking?uid=" + uid + "'>Acompanhar Encomenda</a></p><br><p>Melhores cumprimentos,<br>Equipa Deliberatis</p>")
+          .send();
+      } else if (targetStatus === "Rejeitada") {
+        _smtp.init().to(clientMail)
+          .subject("Encomenda Rejeitada - #" + uid.substring(0, 8))
+          .html("<h2>Lamentamos, mas a tua encomenda foi rejeitada.</h2><p>Encomenda: <strong>" + descricao + "</strong></p><p><strong>Motivo:</strong> " + motivoRejeicao + "</p><br><p>Melhores cumprimentos,<br>Equipa Deliberatis</p>")
+          .send();
+      }
+    } catch (smtpError) {
+      _log.error("SMTP error during update-status: " + smtpError.message);
+    }
+  }
 
   _out.json(_val.map()
     .set("result", true)

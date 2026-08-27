@@ -196,9 +196,37 @@ const TrackingContainer = () => {
       if (index >= routePoints.length) {
         clearInterval(simIntervalRef.current);
         setSimulating(false);
-        notification.success({
-          message: 'Entrega Concluída',
-          description: 'O estafeta chegou com sucesso ao destino de entrega!'
+        const token = localStorage.getItem('user_session_token');
+        _service({
+          url: '/order/status',
+          method: 'POST',
+          headers: {
+            'Authorization': 'Bearer ' + token
+          },
+          data: {
+            uid: uid,
+            estado: 'Entregue'
+          },
+          success: ({ json }) => {
+            if (json.result === true) {
+              notification.success({
+                message: 'Entrega Concluída',
+                description: 'O estafeta chegou com sucesso ao destino de entrega!'
+              });
+              loadOrder(token, uid);
+            } else {
+              notification.error({
+                message: 'Erro ao Atualizar',
+                description: json.error || 'Não foi possível marcar a encomenda como entregue.'
+              });
+            }
+          },
+          fail: () => {
+            notification.error({
+              message: 'Erro de Rede',
+              description: 'Falha ao comunicar com o servidor para marcar como entregue.'
+            });
+          }
         });
         return;
       }

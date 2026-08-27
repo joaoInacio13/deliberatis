@@ -1,4 +1,4 @@
-import { _db, _val, _out, _user, _header, _req } from "@netuno/server-types";
+import { _db, _val, _out, _user, _header, _req, _smtp, _log } from "@netuno/server-types";
 
 try {
   const userId = _user.id();
@@ -45,6 +45,26 @@ try {
               "UPDATE encomenda SET estado_id = ?, data_entrega = CURRENT_TIMESTAMP WHERE id = ?",
               statusId, orderId
             );
+
+            const clientQuery = _db.query(
+              "SELECT nu.mail, e.descricao FROM encomenda e " +
+              "JOIN cliente c ON e.cliente_id = c.id " +
+              "JOIN netuno_user nu ON c.user_id = nu.id " +
+              "WHERE e.id = ?",
+              orderId
+            );
+            if (clientQuery.size() > 0) {
+              const clientMail = clientQuery.get(0).getString("mail");
+              const descricao = clientQuery.get(0).getString("descricao");
+              try {
+                _smtp.init().to(clientMail)
+                  .subject("Encomenda Entregue! - #" + uid.substring(0, 8))
+                  .html("<h2>A tua encomenda foi entregue!</h2><p>Confirmamos que a encomenda <strong>" + descricao + "</strong> foi entregue com sucesso.</p><>Obrigado por escolheres o Deliberatis!</p><br><p>Melhores cumprimentos,<br>Equipa Deliberatis</p>")
+                  .send();
+              } catch (smtpError) {
+                _log.error("SMTP error during delivery notification: " + smtpError.message);
+              }
+            }
           } else {
             _db.execute(
               "UPDATE encomenda SET estado_id = ? WHERE id = ?",

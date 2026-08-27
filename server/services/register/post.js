@@ -1,4 +1,4 @@
-import { _db, _val, _req, _out, _user, _crypto } from "@netuno/server-types";
+import { _db, _val, _req, _out, _user, _crypto, _smtp, _log } from "@netuno/server-types";
 
 // Obtém os dados do formulário de registo enviados pelo cliente
 const primeiroNome = _req.getString("primeiro_nome");
@@ -102,7 +102,15 @@ if (!primeiroNome || !ultimoNome || !email || !password || !dataNascimento) {
               .set("active", true)
           );
 
-          // Retorna sucesso e o identificador do utilizador criado
+          try {
+            _smtp.init().to(email)
+              .subject("Bem-vindo ao Deliberatis")
+              .html("<h2>Olá " + primeiroNome + " " + ultimoNome + ",</h2><p>A tua conta no Deliberatis foi criada com sucesso!</p><p>Agora já podes fazer login com o teu email: <strong>" + email + "</strong>.</p><br><p>Melhores cumprimentos,<br>Equipa Deliberatis</p>")
+              .send();
+          } catch (smtpError) {
+            _log.error("SMTP error during registration: " + smtpError.message);
+          }
+
           _out.json(_val.map()
             .set("result", true)
             .set("id", id)
