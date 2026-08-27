@@ -8,7 +8,8 @@ const OrderDecisionPanel = ({
   onCourierSelect,
   onCancel,
   selectedCourierId,
-  onChangeCourierId
+  onChangeCourierId,
+  isProcessed
 }) => {
   const [rejectionReason, setRejectionReason] = useState('');
   const [isRejectedAction, setIsRejectedAction] = useState(false);
@@ -25,6 +26,7 @@ const OrderDecisionPanel = ({
   };
 
   const handleReject = () => {
+    if (isProcessed) return;
     if (!isRejectedAction) {
       setIsRejectedAction(true);
       return;
@@ -45,6 +47,21 @@ const OrderDecisionPanel = ({
       bordered={false}
       style={{ borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.04)' }}
     >
+      {isProcessed && (
+        <div style={{ 
+          marginBottom: '20px', 
+          padding: '12px 16px', 
+          backgroundColor: '#f0f5ff', 
+          border: '1px solid #adc6ff', 
+          borderRadius: '6px',
+          color: '#1d39c4',
+          fontWeight: '600',
+          fontSize: '14px',
+          textAlign: 'center'
+        }}>
+          Esta encomenda já foi processada.
+        </div>
+      )}
       <Row gutter={[24, 24]} align="bottom">
         <Col xs={24} md={12}>
           <span style={{ color: '#666', fontSize: '14px', display: 'block', marginBottom: '8px', fontWeight: '500' }}>
@@ -65,7 +82,7 @@ const OrderDecisionPanel = ({
                 onCourierSelect(val);
               }
             }}
-            disabled={submitting || isRejectedAction}
+            disabled={submitting || isRejectedAction || isProcessed}
           >
             {couriers
               .filter(c => c.estado === 'Disponível')
@@ -83,9 +100,9 @@ const OrderDecisionPanel = ({
               type="primary"
               size="large"
               loading={submitting}
-              disabled={isRejectedAction}
+              disabled={isRejectedAction || isProcessed}
               onClick={handleAccept}
-              style={{ flex: 1, backgroundColor: '#2eb82e', borderColor: '#2eb82e', borderRadius: '6px', fontWeight: '600' }}
+              style={{ flex: 1, backgroundColor: isProcessed ? '#d9d9d9' : '#2eb82e', borderColor: isProcessed ? '#d9d9d9' : '#2eb82e', borderRadius: '6px', fontWeight: '600' }}
             >
               Aceitar (Em Trânsito)
             </Button>
@@ -94,6 +111,7 @@ const OrderDecisionPanel = ({
               danger
               size="large"
               loading={submitting}
+              disabled={isProcessed}
               onClick={handleReject}
               style={{ flex: 1, borderRadius: '6px', fontWeight: '600' }}
             >
@@ -102,7 +120,7 @@ const OrderDecisionPanel = ({
             {onCancel && (
               <Button
                 size="large"
-                disabled={submitting}
+                disabled={submitting || isProcessed}
                 onClick={onCancel}
                 style={{ borderRadius: '6px', fontWeight: '600' }}
               >
@@ -112,7 +130,7 @@ const OrderDecisionPanel = ({
           </div>
         </Col>
 
-        {isRejectedAction && (
+        {isRejectedAction && !isProcessed && (
           <Col xs={24}>
             <div style={{ marginTop: '16px' }}>
               <span style={{ color: '#ff4d4f', fontSize: '14px', display: 'block', marginBottom: '8px', fontWeight: '500' }}>

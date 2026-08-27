@@ -546,7 +546,7 @@ const OrderDetailsContainer = () => {
                 Processar Encomenda
               </Button>
             )}
-            {order && isOperator && order.estado === 'Pendente' && isProcessing && (
+            {order && isOperator && isProcessing && (
               <Button 
                 type="primary"
                 size="large"
@@ -688,6 +688,7 @@ const OrderDetailsContainer = () => {
                     onDecision={(status, estafetaId, reason) => {
                       handleOperatorDecision(status, estafetaId, reason);
                     }}
+                    isProcessed={order.estado !== 'Pendente'}
                   />
                 </>
               ) : (
