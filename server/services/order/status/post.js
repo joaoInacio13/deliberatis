@@ -9,17 +9,8 @@ try {
     _header.status(400);
     _out.json(_val.map().set("result", false).set("error", "Código único da encomenda e o novo estado são obrigatórios."));
   } else {
-    const operatorQuery = _db.query(
-      "SELECT id FROM operador WHERE user_id = ? AND active = true",
-      userId
-    );
-
-    if (operatorQuery.size() === 0) {
-      _header.status(403);
-      _out.json(_val.map().set("result", false).set("error", "Apenas operadores podem atualizar o estado das encomendas."));
-    } else {
       const orderQuery = _db.query(
-        "SELECT id FROM encomenda WHERE uid = ? AND active = true",
+        "SELECT id, cliente_id FROM encomenda WHERE uid = ? AND active = true",
         uid
       );
 
@@ -28,17 +19,39 @@ try {
         _out.json(_val.map().set("result", false).set("error", "Encomenda não encontrada."));
       } else {
         const orderId = orderQuery.get(0).getInt("id");
+        const orderClienteId = orderQuery.get(0).getInt("cliente_id");
 
-        const statusQuery = _db.query(
-          "SELECT id FROM encomenda_estado WHERE nome = ? AND active = true",
-          estado
+        const operatorQuery = _db.query(
+          "SELECT id FROM operador WHERE user_id = ? AND active = true",
+          userId
         );
 
-        if (statusQuery.size() === 0) {
-          _header.status(400);
-          _out.json(_val.map().set("result", false).set("error", "Estado de encomenda inválido: " + estado));
+        const clientQuery = _db.query(
+          "SELECT id FROM cliente WHERE user_id = ? AND active = true",
+          userId
+        );
+        let isOwner = false;
+        if (clientQuery.size() > 0) {
+          const clientProfileId = clientQuery.get(0).getInt("id");
+          if (clientProfileId === orderClienteId) {
+            isOwner = true;
+          }
+        }
+
+        if (operatorQuery.size() === 0 && !isOwner) {
+          _header.status(403);
+          _out.json(_val.map().set("result", false).set("error", "Apenas operadores ou o cliente associado à encomenda podem atualizar o estado."));
         } else {
-          const statusId = statusQuery.get(0).getInt("id");
+          const statusQuery = _db.query(
+            "SELECT id FROM encomenda_estado WHERE nome = ? AND active = true",
+            estado
+          );
+
+          if (statusQuery.size() === 0) {
+            _header.status(400);
+            _out.json(_val.map().set("result", false).set("error", "Estado de encomenda inválido: " + estado));
+          } else {
+            const statusId = statusQuery.get(0).getInt("id");
 
           if (estado === "Entregue") {
             _db.execute(
