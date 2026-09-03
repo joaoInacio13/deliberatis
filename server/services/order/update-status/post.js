@@ -1,4 +1,4 @@
-import { _db, _val, _req, _out, _user, _header, _smtp, _log } from "@netuno/server-types";
+import { _db, _val, _req, _out, _user, _header, _smtp, _log, _ws } from "@netuno/server-types";
 
 try {
   const userId = _user.id();
@@ -62,8 +62,7 @@ try {
   const targetStatusId = statusQuery.get(0).getInt("id");
 
   // 4. Validate decision-specific parameters and execute update
-  const updateMap = _val.map()
-    .set("estado_id", targetStatusId);
+  const duracaoSegundos = _req.getInt("duracao_segundos") || 60;
 
   if (targetStatus === "Em Trânsito") {
     if (!estafetaId) {
@@ -82,7 +81,10 @@ try {
       throw new Error("Validation failed");
     }
 
-    updateMap.set("estafeta_id", estafetaId);
+    _db.execute(
+      "UPDATE encomenda SET estado_id = ?, estafeta_id = ?, data_inicio = CURRENT_TIMESTAMP, duracao_segundos = ? WHERE id = ?",
+      targetStatusId, estafetaId, duracaoSegundos, orderRow.getInt("id")
+    );
   } else if (targetStatus === "Rejeitada") {
     if (!motivoRejeicao || motivoRejeicao.trim() === "") {
       _header.status(400);
@@ -90,7 +92,10 @@ try {
       _out.close();
       throw new Error("Validation failed");
     }
-    updateMap.set("motivo_rejeicao", motivoRejeicao);
+    _db.execute(
+      "UPDATE encomenda SET estado_id = ?, motivo_rejeicao = ? WHERE id = ?",
+      targetStatusId, motivoRejeicao, orderRow.getInt("id")
+    );
   } else {
     _header.status(400);
     _out.json(_val.map().set("result", false).set("error", "Decisão não reconhecida."));
@@ -98,9 +103,19 @@ try {
     throw new Error("Validation failed");
   }
 
-  // Perform update in encomenda table
-  _db.update("encomenda", orderRow.getInt("id"), updateMap);
+  // Broadcast event via WebSocket to all connected clients
+  try {
+    _ws.broadcastAsService("user", _val.map()
+      .set("type", "order_status")
+      .set("uid", uid)
+      .set("estado", targetStatus)
+      .set("duracao_segundos", duracaoSegundos)
+    );
+  } catch (wsError) {
+    _log.error("WS error during update-status: " + wsError.message);
+  }
 
+  /*
   const clientQuery = _db.query(
     "SELECT nu.mail, e.descricao FROM encomenda e " +
     "JOIN cliente c ON e.cliente_id = c.id " +
@@ -127,6 +142,7 @@ try {
       _log.error("SMTP error during update-status: " + smtpError.message);
     }
   }
+  */
 
   _out.json(_val.map()
     .set("result", true)

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Card, Row, Col, Select, Button, Input, notification } from 'antd';
+import { Card, Row, Col, Select, Button, Input, InputNumber, Radio, Space, notification } from 'antd';
+import { ClockCircleOutlined, DashboardOutlined } from '@ant-design/icons';
 
 const OrderDecisionPanel = ({
   couriers,
@@ -9,10 +10,13 @@ const OrderDecisionPanel = ({
   onCancel,
   selectedCourierId,
   onChangeCourierId,
-  isProcessed
+  isProcessed,
+  routeStats
 }) => {
   const [rejectionReason, setRejectionReason] = useState('');
   const [isRejectedAction, setIsRejectedAction] = useState(false);
+  const [simulationMode, setSimulationMode] = useState('real'); // 'real' | 'custom'
+  const [customDuration, setCustomDuration] = useState(30); // in seconds
 
   const handleAccept = () => {
     if (!selectedCourierId) {
@@ -22,7 +26,19 @@ const OrderDecisionPanel = ({
       });
       return;
     }
-    onDecision('Em Trânsito', selectedCourierId, null);
+
+    let finalDurationSeconds = 60;
+    if (simulationMode === 'real') {
+      if (routeStats && routeStats.durationSeconds) {
+        finalDurationSeconds = Math.max(10, Math.round(routeStats.durationSeconds));
+      } else {
+        finalDurationSeconds = 900; // fallback to 15 mins if route not loaded yet
+      }
+    } else {
+      finalDurationSeconds = Math.max(5, customDuration || 30);
+    }
+
+    onDecision('Em Trânsito', selectedCourierId, null, finalDurationSeconds);
   };
 
   const handleReject = () => {
@@ -38,7 +54,7 @@ const OrderDecisionPanel = ({
       });
       return;
     }
-    onDecision('Rejeitada', null, rejectionReason);
+    onDecision('Rejeitada', null, rejectionReason, null);
   };
 
   return (
@@ -62,6 +78,58 @@ const OrderDecisionPanel = ({
           Esta encomenda já foi processada.
         </div>
       )}
+      
+      {!isProcessed && !isRejectedAction && (
+        <div style={{ marginBottom: '20px', padding: '16px', backgroundColor: '#fafafa', borderRadius: '8px', border: '1px solid #f0f0f0' }}>
+          <span style={{ color: '#555', fontSize: '13px', display: 'block', marginBottom: '10px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            Modalidade de Rastreio & Duração
+          </span>
+          <Radio.Group 
+            value={simulationMode} 
+            onChange={(e) => setSimulationMode(e.target.value)}
+            disabled={submitting}
+            style={{ marginBottom: '12px' }}
+          >
+            <Radio.Button value="real">
+              <DashboardOutlined style={{ marginRight: '6px' }} />
+              Tempo Real {routeStats?.duration ? `(${routeStats.duration})` : ''}
+            </Radio.Button>
+            <Radio.Button value="custom">
+              <ClockCircleOutlined style={{ marginRight: '6px' }} />
+              Simulação Personalizada
+            </Radio.Button>
+          </Radio.Group>
+
+          {simulationMode === 'custom' && (
+            <div style={{ marginTop: '10px', display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: '13px', color: '#666' }}>Duração da entrega:</span>
+              <InputNumber
+                min={5}
+                max={3600}
+                value={customDuration}
+                onChange={(val) => setCustomDuration(val)}
+                addonAfter="segundos"
+                disabled={submitting}
+                style={{ width: '160px' }}
+              />
+              <Space>
+                {[15, 30, 60, 120].map((sec) => (
+                  <Button 
+                    key={sec} 
+                    size="small" 
+                    type={customDuration === sec ? 'primary' : 'default'}
+                    onClick={() => setCustomDuration(sec)}
+                    disabled={submitting}
+                  >
+                    {sec < 60 ? `${sec}s` : `${sec / 60}m`}
+                  </Button>
+                ))}
+              </Space>
+            </div>
+          )}
+        </div>
+      )}
+
       <Row gutter={[24, 24]} align="bottom">
         <Col xs={24} md={12}>
           <span style={{ color: '#666', fontSize: '14px', display: 'block', marginBottom: '8px', fontWeight: '500' }}>

@@ -137,6 +137,7 @@ try {
               .set("active", true)
           );
 
+          /*
           const newOrderQuery = _db.query("SELECT uid FROM encomenda WHERE id = ?", id);
           if (newOrderQuery.size() > 0) {
             const orderUid = newOrderQuery.get(0).getString("uid");
@@ -153,6 +154,7 @@ try {
               }
             }
           }
+          */
 
           _out.json(_val.map()
             .set("result", true)

@@ -102,6 +102,7 @@ if (!primeiroNome || !ultimoNome || !email || !password || !dataNascimento) {
               .set("active", true)
           );
 
+          /*
           try {
             _smtp.init().to(email)
               .subject("Bem-vindo ao Deliberatis")
@@ -110,6 +111,7 @@ if (!primeiroNome || !ultimoNome || !email || !password || !dataNascimento) {
           } catch (smtpError) {
             _log.error("SMTP error during registration: " + smtpError.message);
           }
+          */
 
           _out.json(_val.map()
             .set("result", true)

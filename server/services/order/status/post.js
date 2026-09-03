@@ -1,4 +1,4 @@
-import { _db, _val, _out, _user, _header, _req, _smtp, _log } from "@netuno/server-types";
+import { _db, _val, _out, _user, _header, _req, _smtp, _log, _ws } from "@netuno/server-types";
 
 try {
   const userId = _user.id();
@@ -59,6 +59,18 @@ try {
               statusId, orderId
             );
 
+            // Broadcast delivery event
+            try {
+              _ws.broadcastAsService("user", _val.map()
+                .set("type", "order_status")
+                .set("uid", uid)
+                .set("estado", "Entregue")
+              );
+            } catch (wsErr) {
+              _log.error("WS error: " + wsErr.message);
+            }
+
+            /*
             const clientQuery = _db.query(
               "SELECT nu.mail, e.descricao FROM encomenda e " +
               "JOIN cliente c ON e.cliente_id = c.id " +
@@ -78,6 +90,7 @@ try {
                 _log.error("SMTP error during delivery notification: " + smtpError.message);
               }
             }
+            */
           } else {
             _db.execute(
               "UPDATE encomenda SET estado_id = ? WHERE id = ?",

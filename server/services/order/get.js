@@ -1,4 +1,4 @@
-import { _db, _val, _out, _user, _header, _req } from "@netuno/server-types";
+import { _db, _val, _out, _user, _header, _req, _ws, _log } from "@netuno/server-types";
 
 const HttpClient = Java.type("java.net.http.HttpClient");
 const HttpRequest = Java.type("java.net.http.HttpRequest");
@@ -88,7 +88,7 @@ try {
       if (isOperator) {
         orderQuery = _db.query(
           "SELECT e.id, e.uid, e.lastchange_time, e.descricao, e.preco, e.porta, e.andar, e.telefone, e.observacoes, " +
-          "e.latitude, e.longitude, e.estafeta_id, e.motivo_rejeicao, e.data_entrega, " +
+          "e.latitude, e.longitude, e.estafeta_id, e.motivo_rejeicao, e.data_entrega, e.data_inicio, e.duracao_segundos, " +
           "s.nome AS estado, p.nome AS pagamento, cp.codigo AS codigo_postal, cp.rua, c.nome AS cidade, " +
           "est.nome AS estafeta_nome, est.latitude AS estafeta_latitude, est.longitude AS estafeta_longitude " +
           "FROM encomenda e " +
@@ -103,7 +103,7 @@ try {
       } else {
         orderQuery = _db.query(
           "SELECT e.id, e.uid, e.lastchange_time, e.descricao, e.preco, e.porta, e.andar, e.telefone, e.observacoes, " +
-          "e.latitude, e.longitude, e.estafeta_id, e.motivo_rejeicao, e.data_entrega, " +
+          "e.latitude, e.longitude, e.estafeta_id, e.motivo_rejeicao, e.data_entrega, e.data_inicio, e.duracao_segundos, " +
           "s.nome AS estado, p.nome AS pagamento, cp.codigo AS codigo_postal, cp.rua, c.nome AS cidade, " +
           "est.nome AS estafeta_nome, est.latitude AS estafeta_latitude, est.longitude AS estafeta_longitude " +
           "FROM encomenda e " +
@@ -147,6 +147,49 @@ try {
           }
         }
 
+        let estado = row.getString("estado");
+        let dataInicioStr = row.getString("data_inicio");
+        let duracaoSegundos = row.getInt("duracao_segundos") || 0;
+        let progress = 0.0;
+        let elapsedSeconds = 0;
+
+        if (estado === "Em Trânsito" && dataInicioStr && duracaoSegundos > 0) {
+          try {
+            const cleanDateStr = dataInicioStr.replace('T', ' ').split('.')[0];
+            const startTime = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(cleanDateStr).getTime();
+            const nowTime = new java.util.Date().getTime();
+            elapsedSeconds = Math.max(0, Math.floor((nowTime - startTime) / 1000));
+            progress = Math.min(1.0, elapsedSeconds / duracaoSegundos);
+
+            if (progress >= 1.0) {
+              const deliveredStatusQuery = _db.query("SELECT id FROM encomenda_estado WHERE nome = 'Entregue'");
+              if (deliveredStatusQuery.size() > 0) {
+                const deliveredStatusId = deliveredStatusQuery.get(0).getInt("id");
+                _db.execute(
+                  "UPDATE encomenda SET estado_id = ?, data_entrega = CURRENT_TIMESTAMP WHERE id = ?",
+                  deliveredStatusId, row.getInt("id")
+                );
+                estado = "Entregue";
+                progress = 1.0;
+
+                try {
+                  _ws.broadcastAsService("user", _val.map()
+                    .set("type", "order_status")
+                    .set("uid", uid)
+                    .set("estado", "Entregue")
+                  );
+                } catch (wsErr) {
+                  _log.error("WS error: " + wsErr.message);
+                }
+              }
+            }
+          } catch (err) {
+            _log.error("Error computing transit progress: " + err.message);
+          }
+        } else if (estado === "Entregue") {
+          progress = 1.0;
+        }
+
         _out.json(_val.map()
           .set("result", true)
           .set("order", _val.map()
@@ -155,7 +198,7 @@ try {
             .set("data", row.getString("lastchange_time"))
             .set("descricao", row.getString("descricao"))
             .set("valor", row.getDouble("preco"))
-            .set("estado", row.getString("estado"))
+            .set("estado", estado)
             .set("porta", row.getString("porta"))
             .set("andar", row.getString("andar"))
             .set("telefone", row.getString("telefone"))
@@ -171,6 +214,10 @@ try {
             .set("estafeta_latitude", row.getDouble("estafeta_latitude"))
             .set("estafeta_longitude", row.getDouble("estafeta_longitude"))
             .set("data_entrega", row.getString("data_entrega") || "")
+            .set("data_inicio", dataInicioStr || "")
+            .set("duracao_segundos", duracaoSegundos)
+            .set("elapsed_seconds", elapsedSeconds)
+            .set("progress", progress)
             .set("motivo_rejeicao", row.getString("motivo_rejeicao") || "")
           )
         );

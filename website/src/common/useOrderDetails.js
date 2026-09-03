@@ -68,7 +68,7 @@ const useOrderDetails = (uid, sessionLoading, isOperator) => {
     }
   }, [sessionLoading, uid, isOperator]);
 
-  const handleOperatorDecision = (status, estafetaId, reason) => {
+  const handleOperatorDecision = (status, estafetaId, reason, duracaoSegundos) => {
     const token = localStorage.getItem('user_session_token');
 
     _service({
@@ -81,7 +81,8 @@ const useOrderDetails = (uid, sessionLoading, isOperator) => {
         uid: uid,
         status: status,
         estafeta_id: status === 'Em Trânsito' ? estafetaId : null,
-        motivo_rejeicao: status === 'Rejeitada' ? reason : null
+        motivo_rejeicao: status === 'Rejeitada' ? reason : null,
+        duracao_segundos: status === 'Em Trânsito' ? duracaoSegundos : null
       },
       start: () => {
         setDecisionSubmitting(true);

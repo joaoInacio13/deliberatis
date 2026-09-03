@@ -356,6 +356,7 @@ const OrderDetailsContainer = () => {
             setRouteStats({
               distance: distKm.toFixed(2),
               duration: formatDuration(durationMin),
+              durationSeconds: data.routes[0].duration || (durationMin * 60),
               eta: etaTime
             });
 
@@ -402,6 +403,7 @@ const OrderDetailsContainer = () => {
           setRouteStats({
             distance: distKm.toFixed(2) + " (Linear)",
             duration: formatDuration(durationMin),
+            durationSeconds: durationMin * 60,
             eta: etaTime
           });
 
@@ -685,10 +687,11 @@ const OrderDetailsContainer = () => {
                       const courier = availableCouriers.find(c => c.id === id);
                       setSelectedCourier(courier || null);
                     }}
-                    onDecision={(status, estafetaId, reason) => {
-                      handleOperatorDecision(status, estafetaId, reason);
+                    onDecision={(status, estafetaId, reason, duracaoSegundos) => {
+                      handleOperatorDecision(status, estafetaId, reason, duracaoSegundos);
                     }}
                     isProcessed={order.estado !== 'Pendente'}
+                    routeStats={routeStats}
                   />
                 </>
               ) : (

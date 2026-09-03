@@ -1,8 +1,9 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Layout, Card, Spin, Button, Row, Col, notification, Timeline, Tag } from 'antd';
-import { ArrowLeftOutlined, CompassOutlined, EnvironmentOutlined, CarOutlined, PlayCircleOutlined } from '@ant-design/icons';
+import { Layout, Card, Spin, Button, Row, Col, notification, Tag, Progress } from 'antd';
+import { ArrowLeftOutlined, CompassOutlined, EnvironmentOutlined, CarOutlined, ClockCircleOutlined } from '@ant-design/icons';
 import _service from '@netuno/service-client';
 import useSession from '../../common/useSession';
+import useWS from '../../common/useWS';
 import './index.less';
 
 const { Header, Content } = Layout;
@@ -14,30 +15,55 @@ const formatDateTime = (dateTimeStr) => {
   return d.toLocaleString('pt-PT', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 };
 
-const formatDuration = (seconds) => {
-  if (!seconds) return '0 min';
-  const mins = Math.round(seconds / 60);
-  if (mins < 60) return `${mins} min`;
-  const hrs = Math.floor(mins / 60);
-  const remMins = mins % 60;
-  return remMins > 0 ? `${hrs}h ${remMins}m` : `${hrs}h`;
+const formatSeconds = (totalSeconds) => {
+  if (totalSeconds <= 0) return '0s';
+  const hrs = Math.floor(totalSeconds / 3600);
+  const mins = Math.floor((totalSeconds % 3600) / 60);
+  const secs = Math.floor(totalSeconds % 60);
+
+  if (hrs > 0) {
+    return `${hrs}h ${mins.toString().padStart(2, '0')}m ${secs.toString().padStart(2, '0')}s`;
+  }
+  if (mins > 0) {
+    return `${mins}m ${secs.toString().padStart(2, '0')}s`;
+  }
+  return `${secs}s`;
 };
 
 const TrackingContainer = () => {
-  const { sessionLoading, logout } = useSession();
+  const { sessionLoading } = useSession();
   const [uid, setUid] = useState('');
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [simulating, setSimulating] = useState(false);
   const [routePoints, setRoutePoints] = useState([]);
   const [routeDuration, setRouteDuration] = useState(0);
+  const [routeDistance, setRouteDistance] = useState(0);
+  const [progressPercent, setProgressPercent] = useState(0);
+  const [remainingTime, setRemainingTime] = useState(0);
+  const [etaTime, setEtaTime] = useState('');
   
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const deliveryMarkerRef = useRef(null);
   const courierMarkerRef = useRef(null);
   const routeLineRef = useRef(null);
-  const simIntervalRef = useRef(null);
+  const timerRef = useRef(null);
+
+  const ws = useWS((data) => {
+    if (data && (data.uid === uid || !data.uid)) {
+      if (data.type === 'order_status') {
+        const token = localStorage.getItem('user_session_token');
+        loadOrder(token, uid);
+      }
+    }
+  });
+
+  useEffect(() => {
+    ws.load();
+    return () => {
+      ws.close();
+    };
+  }, []);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -89,8 +115,8 @@ const TrackingContainer = () => {
         mapInstanceRef.current.remove();
         mapInstanceRef.current = null;
       }
-      if (simIntervalRef.current) {
-        clearInterval(simIntervalRef.current);
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
       }
     };
   }, []);
@@ -100,7 +126,6 @@ const TrackingContainer = () => {
     if (!L || !order || !mapRef.current || mapInstanceRef.current) return;
 
     const deliveryLatLng = [order.latitude, order.longitude];
-    
     const courierLat = order.estafeta_latitude || (order.latitude + 0.01);
     const courierLng = order.estafeta_longitude || (order.longitude - 0.01);
     const courierLatLng = [courierLat, courierLng];
@@ -150,6 +175,7 @@ const TrackingContainer = () => {
           const latlngs = coords.map(c => [c[1], c[0]]);
           setRoutePoints(latlngs);
           setRouteDuration(data.routes[0].duration || 1800);
+          setRouteDistance((data.routes[0].distance || 0) / 1000);
 
           routeLineRef.current = L.polyline(latlngs, {
             color: '#5b5ce1',
@@ -165,6 +191,15 @@ const TrackingContainer = () => {
         const latlngs = [courierLatLng, deliveryLatLng];
         setRoutePoints(latlngs);
         setRouteDuration(1800);
+        
+        const R = 6371;
+        const dLat = (order.latitude - courierLat) * Math.PI / 180;
+        const dLng = (order.longitude - courierLng) * Math.PI / 180;
+        const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                  Math.cos(courierLat * Math.PI / 180) * Math.cos(order.latitude * Math.PI / 180) *
+                  Math.sin(dLng/2) * Math.sin(dLng/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        setRouteDistance(R * c);
 
         routeLineRef.current = L.polyline(latlngs, {
           color: '#5b5ce1',
@@ -178,69 +213,93 @@ const TrackingContainer = () => {
 
   }, [order]);
 
-  const startSimulation = (mode) => {
-    if (routePoints.length === 0 || simulating) return;
-    
-    setSimulating(true);
-    let index = 0;
-    
-    if (simIntervalRef.current) {
-      clearInterval(simIntervalRef.current);
+  useEffect(() => {
+    if (!order) return;
+
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
     }
 
-    const delay = mode === 'fast'
-      ? 150
-      : Math.max(100, (routeDuration * 1000) / routePoints.length);
+    if (order.estado === 'Entregue') {
+      setProgressPercent(100);
+      setRemainingTime(0);
+      if (routePoints.length > 0 && courierMarkerRef.current) {
+        courierMarkerRef.current.setLatLng(routePoints[routePoints.length - 1]);
+      }
+      return;
+    }
 
-    simIntervalRef.current = setInterval(() => {
-      if (index >= routePoints.length) {
-        clearInterval(simIntervalRef.current);
-        setSimulating(false);
-        const token = localStorage.getItem('user_session_token');
-        _service({
-          url: '/order/status',
-          method: 'POST',
-          headers: {
-            'Authorization': 'Bearer ' + token
-          },
-          data: {
-            uid: uid,
-            estado: 'Entregue'
-          },
-          success: ({ json }) => {
-            if (json.result === true) {
-              notification.success({
-                message: 'Entrega Concluída',
-                description: 'O estafeta chegou com sucesso ao destino de entrega!'
-              });
-              loadOrder(token, uid);
-            } else {
-              notification.error({
-                message: 'Erro ao Atualizar',
-                description: json.error || 'Não foi possível marcar a encomenda como entregue.'
-              });
-            }
-          },
-          fail: () => {
-            notification.error({
-              message: 'Erro de Rede',
-              description: 'Falha ao comunicar com o servidor para marcar como entregue.'
-            });
+    if (order.estado === 'Em Trânsito') {
+      const updatePosition = () => {
+        let startTime = Date.now();
+        if (order.data_inicio) {
+          const cleanDateStr = order.data_inicio.replace('T', ' ').replace(/-/g, '/').split('.')[0];
+          const parsed = new Date(cleanDateStr).getTime();
+          if (!isNaN(parsed)) {
+            startTime = parsed;
           }
-        });
-        return;
-      }
-
-      const nextLatLng = routePoints[index];
-      if (courierMarkerRef.current) {
-        courierMarkerRef.current.setLatLng(nextLatLng);
-        if (mapInstanceRef.current) {
-          mapInstanceRef.current.panTo(nextLatLng);
         }
+
+        const duration = order.duracao_segundos || routeDuration || 60;
+        const now = Date.now();
+        const elapsed = Math.max(0, (now - startTime) / 1000);
+        const progress = Math.min(1.0, Math.max(0.0, elapsed / duration));
+        const percent = Math.round(progress * 100);
+        const remaining = Math.max(0, Math.round(duration - elapsed));
+
+        const arrivalDate = new Date(startTime + (duration * 1000));
+        const etaFormatted = arrivalDate.toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+        setProgressPercent(percent);
+        setRemainingTime(remaining);
+        setEtaTime(etaFormatted);
+
+        if (routePoints.length > 0 && courierMarkerRef.current) {
+          const pointIdx = Math.min(routePoints.length - 1, Math.floor(progress * (routePoints.length - 1)));
+          const currentPoint = routePoints[pointIdx];
+          courierMarkerRef.current.setLatLng(currentPoint);
+        }
+
+        if (progress >= 1.0) {
+          clearInterval(timerRef.current);
+          const token = localStorage.getItem('user_session_token');
+          _service({
+            url: '/order/status',
+            method: 'POST',
+            headers: {
+              'Authorization': 'Bearer ' + token
+            },
+            data: {
+              uid: uid,
+              estado: 'Entregue'
+            },
+            success: ({ json }) => {
+              if (json.result === true) {
+                notification.success({
+                  message: 'Entrega Concluída',
+                  description: 'O estafeta chegou com sucesso ao destino!'
+                });
+                loadOrder(token, uid);
+              }
+            }
+          });
+        }
+      };
+
+      updatePosition();
+      timerRef.current = setInterval(updatePosition, 1000);
+    } else {
+      setProgressPercent(0);
+      setRemainingTime(0);
+      setEtaTime('');
+    }
+
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
       }
-      index++;
-    }, delay);
-  };
+    };
+  }, [order, routePoints, routeDuration, uid]);
 
   if (sessionLoading || loading) {
     return (
@@ -292,29 +351,59 @@ const TrackingContainer = () => {
             >
               <div className="tracking-content__status-header">
                 <h3>Código: #{order.uid}</h3>
-                <Tag color={order.estado === 'Em Trânsito' ? 'processing' : 'success'} className="tracking-content__status-tag">
+                <Tag color={order.estado === 'Em Trânsito' ? 'processing' : order.estado === 'Entregue' ? 'success' : 'default'} className="tracking-content__status-tag">
                   {order.estado}
                 </Tag>
               </div>
 
-              <Timeline 
-                className="tracking-content__timeline"
-                items={[
-                  {
-                    children: 'Pedido Recebido e Registado',
-                    color: 'green'
-                  },
-                  {
-                    children: order.estado === 'Pendente' ? 'A aguardar atribuição de estafeta' : 'Estafeta atribuído e em trânsito',
-                    color: order.estado === 'Pendente' ? 'gray' : 'green',
-                    dot: order.estado !== 'Pendente' && <CarOutlined />
-                  },
-                  {
-                    children: 'Entrega no local de destino',
-                    color: order.estado === 'Entregue' ? 'green' : 'gray'
-                  }
-                ]}
-              />
+              <div style={{ margin: '16px 0 24px 0', padding: '16px', backgroundColor: '#f9faff', borderRadius: '8px', border: '1px solid #e6f0ff' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <span style={{ fontSize: '13px', fontWeight: '600', color: '#333' }}>
+                    Progresso da Entrega
+                  </span>
+                  <span style={{ fontSize: '15px', fontWeight: '700', color: '#5b5ce1' }}>
+                    {progressPercent}%
+                  </span>
+                </div>
+                <Progress 
+                  percent={progressPercent} 
+                  showInfo={false}
+                  strokeColor={{ '0%': '#5b5ce1', '100%': '#52c41a' }}
+                  status={order.estado === 'Entregue' ? 'success' : 'active'} 
+                  style={{ marginBottom: '14px' }}
+                />
+
+                <Row gutter={[12, 12]} style={{ fontSize: '13px' }}>
+                  <Col span={12}>
+                    <span style={{ fontSize: '11px', color: '#888', display: 'block', textTransform: 'uppercase', fontWeight: '600' }}>
+                      Distância
+                    </span>
+                    <strong style={{ color: '#222', fontSize: '14px' }}>
+                      {routeDistance > 0 ? `${((progressPercent / 100) * routeDistance).toFixed(1)} / ${routeDistance.toFixed(1)} km` : '--'}
+                    </strong>
+                  </Col>
+                  <Col span={12}>
+                    <span style={{ fontSize: '11px', color: '#888', display: 'block', textTransform: 'uppercase', fontWeight: '600' }}>
+                      Previsão de Chegada
+                    </span>
+                    <strong style={{ color: '#222', fontSize: '14px' }}>
+                      {order.estado === 'Entregue' ? (order.data_entrega ? formatDateTime(order.data_entrega).split(' ')[1] : 'Concluído') : (etaTime || '--')}
+                    </strong>
+                  </Col>
+                  <Col span={12} style={{ marginTop: '4px' }}>
+                    <span style={{ fontSize: '12px', color: '#666' }}>
+                      <CarOutlined style={{ marginRight: '4px', color: '#5b5ce1' }} />
+                      {order.estado === 'Entregue' ? 'Destino Alcançado' : 'Em Deslocação'}
+                    </span>
+                  </Col>
+                  <Col span={12} style={{ marginTop: '4px' }}>
+                    <span style={{ fontSize: '12px', color: '#666' }}>
+                      <ClockCircleOutlined style={{ marginRight: '4px', color: '#5b5ce1' }} />
+                      {order.estado === 'Entregue' ? 'Concluído' : `Restam: ${formatSeconds(remainingTime)}`}
+                    </span>
+                  </Col>
+                </Row>
+              </div>
 
               <div className="tracking-content__address">
                 <h4><EnvironmentOutlined /> Morada de Entrega</h4>
@@ -323,52 +412,18 @@ const TrackingContainer = () => {
               </div>
 
               {order.estafeta_nome && (
-                <div className="tracking-content__courier">
+                <div className="tracking-content__courier" style={{ marginTop: '16px' }}>
                   <h4>Estafeta</h4>
                   <p><strong>{order.estafeta_nome}</strong> está a realizar a sua entrega.</p>
                 </div>
               )}
 
               {order.data_entrega && (
-                <div className="tracking-content__delivery-time" style={{ backgroundColor: '#f6ffed', border: '1px solid #b7eb8f', padding: '16px', borderRadius: '6px' }}>
+                <div className="tracking-content__delivery-time" style={{ backgroundColor: '#f6ffed', border: '1px solid #b7eb8f', padding: '16px', borderRadius: '6px', marginTop: '16px' }}>
                   <h4 style={{ color: '#52c41a', margin: '0 0 6px 0', fontSize: '14px', fontWeight: '600' }}>Entregue em</h4>
                   <p style={{ margin: 0, fontSize: '15px', fontWeight: '500', color: '#333' }}>{formatDateTime(order.data_entrega)}</p>
                 </div>
               )}
-
-              <Row gutter={12} style={{ marginTop: 'auto' }}>
-                <Col span={12}>
-                  <Button
-                    type="primary"
-                    icon={<PlayCircleOutlined />}
-                    onClick={() => startSimulation('fast')}
-                    disabled={simulating || routePoints.length === 0}
-                    block
-                    className="tracking-content__simulate-btn"
-                  >
-                    {simulating ? 'A Simular...' : 'Simulação Rápida'}
-                  </Button>
-                  <div style={{ textAlign: 'center', marginTop: '6px', fontSize: '12px', color: '#888' }}>
-                    Tempo: <strong>{routePoints.length ? (routePoints.length * 0.15 < 60 ? `${Math.round(routePoints.length * 0.15)}s` : `${Math.round((routePoints.length * 0.15) / 60)} min`) : '--'}</strong>
-                  </div>
-                </Col>
-                <Col span={12}>
-                  <Button
-                    type="default"
-                    icon={<CompassOutlined />}
-                    onClick={() => startSimulation('realtime')}
-                    disabled={simulating || routePoints.length === 0}
-                    block
-                    className="tracking-content__simulate-real-btn"
-                    style={{ borderColor: '#5b5ce1', color: '#5b5ce1', fontWeight: '600' }}
-                  >
-                    Simulação Tempo Real
-                  </Button>
-                  <div style={{ textAlign: 'center', marginTop: '6px', fontSize: '12px', color: '#888' }}>
-                    Tempo: <strong>{formatDuration(routeDuration)}</strong>
-                  </div>
-                </Col>
-              </Row>
             </Card>
           </Col>
 
