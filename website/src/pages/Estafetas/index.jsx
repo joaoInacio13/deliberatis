@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Layout, Menu, Button, Spin, Form, Input, Card, Row, Col, Select, Tag, Space, Table, DatePicker } from 'antd';
-import { LogoutOutlined, OrderedListOutlined, UserSwitchOutlined, PlusOutlined, UserOutlined, PhoneOutlined, CarOutlined } from '@ant-design/icons';
+import { LogoutOutlined, OrderedListOutlined, UserSwitchOutlined, PlusOutlined, UserOutlined, PhoneOutlined, CarOutlined, BarChartOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import useSession from '../../common/useSession';
 import useCouriers from '../../common/useCouriers';
@@ -247,11 +247,15 @@ const EstafetasContainer = () => {
               if (e.key === 'pedidos') {
                 window.location.href = '/home';
               }
+              if (e.key === 'estatisticas') {
+                window.location.href = '/estatisticas';
+              }
             }}
             className="estafetas-sider__menu"
             items={[
               { key: 'pedidos', icon: <OrderedListOutlined />, label: 'Pedidos' },
-              { key: 'estafetas', icon: <UserSwitchOutlined />, label: 'Estafetas' }
+              { key: 'estafetas', icon: <UserSwitchOutlined />, label: 'Estafetas' },
+              { key: 'estatisticas', icon: <BarChartOutlined />, label: 'Estatísticas' }
             ]}
           />
         </Sider>

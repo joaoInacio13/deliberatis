@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Layout, Button, Spin, Form, Menu } from 'antd';
-import { PlusOutlined, LogoutOutlined, OrderedListOutlined, UserSwitchOutlined, UserOutlined } from '@ant-design/icons';
+import { PlusOutlined, LogoutOutlined, OrderedListOutlined, UserSwitchOutlined, UserOutlined, BarChartOutlined } from '@ant-design/icons';
 
 import OrdersTableCliente from '../../components/OrdersTableClienteComponent';
 import OrdersTableOperador from '../../components/OrdersTableOperadorComponent';
@@ -122,11 +122,15 @@ const HomeContainer = () => {
                 if (e.key === 'estafetas') {
                   window.location.href = '/estafetas';
                 }
+                if (e.key === 'estatisticas') {
+                  window.location.href = '/estatisticas';
+                }
               }}
               className="home-sider__menu"
               items={[
                 { key: 'pedidos', icon: <OrderedListOutlined />, label: 'Pedidos' },
-                { key: 'estafetas', icon: <UserSwitchOutlined />, label: 'Estafetas' }
+                { key: 'estafetas', icon: <UserSwitchOutlined />, label: 'Estafetas' },
+                { key: 'estatisticas', icon: <BarChartOutlined />, label: 'Estatísticas' }
               ]}
             />
           </Sider>

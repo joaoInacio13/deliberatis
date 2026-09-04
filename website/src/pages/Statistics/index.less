@@ -1,0 +1,148 @@
+.stats-layout {
+  min-height: 100vh;
+  background-color: #f7f9fc;
+}
+
+.stats-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  padding: 0 24px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+
+  &__logo-container {
+    display: flex;
+    align-items: center;
+    height: 100%;
+  }
+
+  &__logo {
+    max-height: 38px;
+    width: auto;
+  }
+
+  &__actions {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+  }
+}
+
+.stats-sider {
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.02);
+  border-right: 1px solid #f0f0f0;
+  position: sticky;
+  top: 64px;
+  height: calc(100vh - 64px);
+  overflow-y: auto;
+
+  &__menu {
+    height: 100%;
+    padding-top: 16px;
+    border-right: 0;
+  }
+}
+
+.stats-content {
+  padding: 32px 24px;
+  max-width: 1280px;
+  width: 100%;
+  margin: 0 auto;
+
+  &__welcome {
+    margin-bottom: 24px;
+
+    &--title {
+      margin: 0;
+      color: #1a1a2e;
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+
+    &--desc {
+      color: #6c757d;
+      margin: 4px 0 0 0;
+      font-size: 14px;
+    }
+  }
+
+  &__kpi-card {
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+    border: 1px solid #edf2f7;
+    transition: all 0.2s ease-in-out;
+    background: #ffffff;
+
+    &:hover {
+      box-shadow: 0 6px 16px rgba(91, 92, 225, 0.08);
+      transform: translateY(-2px);
+    }
+
+    &--icon-wrap {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      margin-bottom: 12px;
+    }
+  }
+
+  &__card-title {
+    font-weight: 700;
+    color: #1a1a2e;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+  }
+
+  &__badge-card {
+    background: linear-gradient(135deg, #ffffff 0%, #f9f9ff 100%);
+    border: 1px solid #e8e8ff;
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 2px 8px rgba(91, 92, 225, 0.04);
+
+    &--icon {
+      font-size: 32px;
+    }
+
+    &--label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #5b5ce1;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    &--name {
+      font-size: 16px;
+      font-weight: 700;
+      color: #1a1a2e;
+      margin: 2px 0;
+    }
+
+    &--detail {
+      font-size: 13px;
+      color: #666;
+    }
+  }
+}
+
+.stats-loading {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #f7f9fc;
+}
